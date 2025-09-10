@@ -5,6 +5,8 @@
 This includes a widget rendering system (with support for async widgets e.g. progressbars), flex layouts, and terminal styling. 
 It presumes limited width and unlimited height, and provides built-in progressbars, text inputs, and other widgets.
 
+It currently uses `crossterm` as a backend, although support for `termion` is planned.
+
 ## Examples
 To see what `tdrop` can do, see [EXAMPLES.md](./EXAMPLES.md). Included below is some output of those examples.
 
