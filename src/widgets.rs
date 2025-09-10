@@ -1,11 +1,12 @@
-use crate::{buffer::Buffer, layout::rect::Rect};
+use std::fmt::Display;
 
+use crate::{buffer::buffer::Buffer, layout::rect::Rect};
+
+/** [[Widget]] is the  */
 pub trait Widget {
-    fn render(self, rect: Rect) -> Buffer;
+    fn render(self, frame: Rect) -> String;
 }
 
-pub trait StatefulWidget: Send + Sync {
-    type State;
-
-    fn render(self, rect: Rect, state: Self::State) -> Buffer;
-}
+/// [[StatefulWidget]] supplies facilities for rendering widgets which use some internal state to
+/// display interactivity (e.g. progress)
+pub trait StatefulWidget {}
