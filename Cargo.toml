@@ -1,5 +1,6 @@
 [package]
-name = "tpop"
+name = "tdrop"
+description="A crate providing widgets, layout, and styling for non-TUI applications"
 version = "0.1.0"
 edition = "2024"
 
