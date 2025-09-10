@@ -1,95 +1,54 @@
-use crate::layout::position::Position;
-
-pub struct Coordinate(u16, u16);
-
-#[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct Rect {
-    pub x: u16,
-    pub y: u16,
-
+    /** Width represents the width of the area */
     pub width: u16,
-    pub height: u16,
-}
-
-#[derive(Default, Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Offset {
-    pub x: i32,
-    pub y: i32,
+    /** Height represents the optional height of the buffer, defaults to none */
+    pub height: Option<u16>,
+    /** Represents the x position relative to the current line */
+    pub x: u16,
+    /** Represents the y position relative to the current line */
+    pub y: u16,
+    pub expand: bool,
 }
 
 impl Rect {
-    pub const ZERO: Self = Self {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-    };
-
-    pub const fn new(x: u16, y: u16, width: u16, height: u16) -> Self {
-        let max_width = u16::MAX - x;
-        let max_height = u16::MAX - y;
-        let width = if width > max_width { max_width } else { width };
-        let height = if height > max_height {
-            max_height
-        } else {
-            height
-        };
-
+    pub fn new(x: u16, y: u16, width: u16, height: Option<u16>) -> Self {
+        let expand = if height.is_some() { false } else { true };
         Self {
             x,
             y,
             width,
             height,
+            expand,
         }
     }
 
-    /** This function returns a rect which is the width of the terminal with an unbounded height.
-     * If the terminal width cannot be retrieved, returns one with width 80 */
-    pub fn term_rect() -> Self {
-        let size = crossterm::terminal::size().unwrap_or((80, 0));
-        Self {
-            x: 0,
-            y: 0,
-            width: size.0,
-            height: 0,
+    pub fn expands(mut self, expand: bool) -> Self {
+        self.expand = expand;
+        self
+    }
+
+    pub fn top(self) -> u16 {
+        return self.y;
+    }
+
+    pub fn left(self) -> u16 {
+        return self.x;
+    }
+
+    pub fn bottom(self) -> Option<u16> {
+        if let Some(h) = self.height {
+            return Some(self.y.overflowing_add(h).0);
         }
+
+        None
     }
 
-    pub const fn area(self) -> u32 {
-        (self.width as u32) * (self.height as u32)
+    pub fn right(self) -> u16 {
+        self.x.overflowing_add(self.width).0
     }
 
-    pub const fn is_empty(self) -> bool {
-        self.width == 0
-    }
-
-    pub const fn left(self) -> u16 {
-        self.x
-    }
-
-    pub const fn right(self) -> u16 {
-        self.x.saturating_add(self.width)
-    }
-
-    pub const fn top(self) -> u16 {
-        self.y
-    }
-
-    pub const fn bottom(self) -> u16 {
-        self.y.saturating_add(self.height)
-    }
-
-    pub const fn contains(self, position: Position) -> bool {
-        position.x >= self.x
-            && position.x < self.right()
-            && position.y >= self.y
-            && position.y < self.bottom()
-    }
-
-    pub fn as_position(self) -> Position {
-        Position {
-            x: self.x,
-            y: self.y,
-        }
+    pub fn area(self) -> u32 {
+        (self.width as u32 * self.height.unwrap_or(1) as u32)
     }
 }

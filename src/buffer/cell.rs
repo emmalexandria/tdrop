@@ -1,28 +1,12 @@
-use crossterm::style::{Attributes, Color, Stylize};
-
 use crate::Style;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Cell {
     symbol: Option<String>,
-
-    pub style: Style,
-}
-
-impl std::fmt::Display for Cell {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.style.apply(self.symbol()))
-    }
+    style: Style,
 }
 
 impl Cell {
-    pub fn new(symbol: &str) -> Self {
-        Self {
-            symbol: Some(symbol.to_string()),
-            ..Self::empty()
-        }
-    }
-
     pub fn empty() -> Self {
         Self {
             symbol: None,
@@ -30,12 +14,19 @@ impl Cell {
         }
     }
 
+    #[must_use]
     pub fn symbol(&self) -> &str {
         self.symbol.as_ref().map_or(" ", |s| s.as_str())
     }
 
     pub fn set_symbol(&mut self, symbol: &str) -> &mut Self {
-        self.symbol = Some(symbol.to_string());
+        self.symbol = Some(String::from(symbol));
+        self
+    }
+
+    pub fn set_char(&mut self, ch: char) -> &mut Self {
+        let mut buf = [0; 4];
+        self.symbol = Some(String::from(ch.encode_utf8(&mut buf)));
         self
     }
 
@@ -44,11 +35,13 @@ impl Cell {
         self
     }
 
-    pub fn reset(&mut self) {
-        *self = Self::empty()
+    pub fn reset(&mut self) -> &mut Self {
+        self.style = Style::default();
+        self.symbol = None;
+        self
     }
 
-    pub fn style(&self) -> Style {
-        self.style
+    pub fn display(&self) -> String {
+        self.style.apply(self.symbol()).to_string()
     }
 }
