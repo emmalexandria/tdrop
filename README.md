@@ -37,8 +37,10 @@ To begin, add `tdrop` as a dependency with `cargo add tdrop`.
 ### Minimal Example
 
 
+
 ### Key Concepts
-`tdrop` provides a few key things you'll be interacting with. A few of these are lower level than you'll usually be worried about, such as `Terminal`
+`tdrop` provides a few key things you'll be interacting with. A few of these are lower level than you'll usually be worried about, such as `Terminal`, which is an abstraction layer over terminal output. `Width` represents a given span of terminal cells starting at `x` with a 
+set width. 
 
 
 
