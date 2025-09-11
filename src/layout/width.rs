@@ -71,6 +71,14 @@ impl Width {
 
         intersection.width
     }
+
+    /// Write to the width on the given terminal and insert a new line
+    pub fn writeln<W: Write, I: TerminalInput>(&self, text: I, term: &mut Terminal<W>) -> u16 {
+        let ret = self.write(text, term);
+        let _ = term.newline();
+
+        ret
+    }
 }
 
 #[cfg(test)]

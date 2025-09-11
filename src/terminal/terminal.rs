@@ -114,6 +114,16 @@ impl<W: Write> Terminal<W> {
         Ok(res)
     }
 
+    /// Create a new line
+    pub fn newline(&mut self) -> std::io::Result<()> {
+        self.handle
+            .queue(MoveToNextLine(1))?
+            .queue(ScrollUp(1))?
+            .flush()?;
+
+        Ok(())
+    }
+
     /// Scroll the terminal n lines. n > 0 will scroll up (create blank lines), n < 0 will scroll
     /// down (delete lines). n == 0 will do nothing
     pub fn scroll(&mut self, n: i32) -> std::io::Result<()> {
@@ -143,6 +153,11 @@ impl<W: Write> Terminal<W> {
             .queue(MoveToPreviousLine(n))?
             .queue(Clear(crossterm::terminal::ClearType::FromCursorDown))?;
         Ok(())
+    }
+
+    /// Flush queued changes to the handle
+    pub fn flush(&mut self) -> std::io::Result<()> {
+        self.handle.flush()
     }
 
     /// Get a reference to the handle

@@ -6,15 +6,31 @@ pub trait TerminalInput {
     fn content(&self) -> String;
 
     /// Return the style of the input
-    fn style(&self) -> Style;
-}
-
-impl<S: AsRef<str>> TerminalInput for S {
-    fn content(&self) -> String {
-        self.as_ref().to_string()
-    }
-
     fn style(&self) -> Style {
         Style::default()
+    }
+}
+
+impl TerminalInput for String {
+    fn content(&self) -> String {
+        self.clone()
+    }
+}
+
+impl TerminalInput for &str {
+    fn content(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl TerminalInput for &String {
+    fn content(&self) -> String {
+        self.to_string()
+    }
+}
+
+impl TerminalInput for char {
+    fn content(&self) -> String {
+        self.to_string()
     }
 }

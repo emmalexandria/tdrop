@@ -33,6 +33,12 @@ impl<D: Display> StyledString<D> {
     pub fn style_mut(&mut self) -> &mut Style {
         &mut self.style
     }
+
+    /// Return the length of the inner content of the [StyledString]
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.content.to_string().len()
+    }
 }
 
 impl<D: Display + Clone> From<crossterm::style::StyledContent<D>> for StyledString<D> {
