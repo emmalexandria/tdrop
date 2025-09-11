@@ -1,18 +1,14 @@
-use std::{
-    fmt::Display,
-    io::{Stdout, Write},
-};
+use std::io::{Stdout, Write};
 
 use crossterm::{
-    cursor::{MoveDown, MoveToNextLine, MoveToPreviousLine},
-    execute, queue,
+    cursor::{MoveToNextLine, MoveToPreviousLine},
     style::Print,
     terminal::{Clear, ScrollDown, ScrollUp},
-    Command, ExecutableCommand, QueueableCommand,
+    ExecutableCommand, QueueableCommand,
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{layout::Width, terminal::TerminalInput};
+use crate::terminal::TerminalInput;
 
 /// [Terminal] is an abstraction over the terminal for use by widgets
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -51,7 +47,7 @@ impl<W: Write> Terminal<W> {
 
     /// Print to the terminal
     pub fn print<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        let content = self.printn(text, usize::MAX, true);
+        self.printn(text, usize::MAX, true)?;
         Ok(())
     }
 
