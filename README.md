@@ -4,15 +4,11 @@
 
 <p align="center"><i><b>a drop of tui</b></i></p>
 
-`tdrop` is a Rust crate which provides a wide array of functionality for non-interactive terminal applications. 
-This includes a widget rendering system (with support for async widgets e.g. progressbars), flex layouts, and terminal styling.  
-It uses [crossterm](https://github.com/crossterm-rs/crossterm) as a backend, ensuring it is fully cross platform.
+`tdrop` is a Rust crate which provides a wide array of functionality for terminal applications. This includes a widget rendering system (with support for async widgets e.g. progressbars), flex layouts, and terminal styling.  It uses [crossterm](https://github.com/crossterm-rs/crossterm) as a backend, ensuring it is fully cross platform.
 
-Although it cannot lay a claim to efficiency, I certaintly believe it is best-in-class in terms of the ease with which
-one can achieve beautiful cross-platform terminal output.
+Although it cannot lay a claim to efficiency, I certaintly believe it is best-in-class in terms of the ease with which one can achieve beautiful cross-platform terminal output.
 
-If you have used [ratatui](https://github.com/ratatui/ratatui), you'll find the interface delightfully similar,
-although there are some key differences.
+If you have used [ratatui](https://github.com/ratatui/ratatui) or [crossterm](https://github.com/crossterm-rs/crossterm), you'll find the API delightfully familiar, although there are some key differences.
 
 ## Table of Contents
 - [Features](#features)
@@ -27,6 +23,7 @@ although there are some key differences.
 - Theming system for e.g. warning, success, and error messages
 - Layouts including margin and padding
 - Border rendering
+- Beautiful set of out-of-the-box widgets.
 
 ## Getting Started
 
