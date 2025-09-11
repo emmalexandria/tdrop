@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1235.09 499.95">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #13131c;
+        stroke: #ced6ed;
+        stroke-miterlimit: 10;
+        stroke-width: 18px;
+      }
+
+      .cls-2 {
+        fill: #ced6ed;
+      }
+
+      .cls-3 {
+        font-family: SpaceMono-Bold, 'Space Mono';
+        font-size: 300px;
+        font-weight: 700;
+      }
+
+      .cls-4 {
+        fill: #f48ca8;
+      }
+
+      .cls-5 {
+        fill: #91b2dd;
+      }
+    </style>
+  </defs>
+  <g>
+    <path class="cls-1" d="M288.28,343.32c0,73.68-59.09,133.42-131.97,133.42S24.33,417,24.33,343.32,156.3,23.21,156.3,23.21c0,0,131.97,246.42,131.97,320.11Z"/>
+    <path class="cls-2" d="M266.87,343.32c4.7,44.83-24.95,90.09-67.05,105.57-13.91,5.33-28.95,7.55-43.51,6.2,14.55-1.36,28.61-4.94,41.52-10.93,39.53-17.91,65.36-57.94,69.04-100.84h0Z"/>
+  </g>
+  <text class="cls-3" transform="translate(288.61 354.97)"><tspan class="cls-4" x="0" y="0">t</tspan><tspan class="cls-5" x="183.6" y="0">drop</tspan></text>
+</svg>
