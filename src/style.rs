@@ -8,15 +8,21 @@
 //!
 //! To create and apply a style:
 //! ```
-//! let style = Style::new().with(Color::BrightRed).bold();
+//! use tdrop::style::{Style, Color, Stylize, Attribute};
+//!
+//! let style = Style::new().with(Color::BrightRed).attribute(Attribute::Bold);
 //! let styled_str = style.apply("Hello");
 //!
 //! // Hello will print in bright red and bold
 //! println!("{styled_str}")
 //! ```
+//! Or to style a string without creating a style first:
+//! ```
+//! use tdrop::style::{Color, Attribute, Stylize};
 //!
-
-use std::{borrow::Cow, fmt::Display};
+//! println!("{}", "hello".with(Color::Rgb{r: 32, g: 50, b: 42}).attribute(Attribute::Italic));
+//! ```
+//!
 
 mod attributes;
 mod color;
@@ -27,6 +33,8 @@ pub use attributes::{Attribute, Attributes};
 pub use color::Color;
 pub use styled::StyledString;
 pub use stylize::Stylize;
+
+use std::fmt::Display;
 
 /// Creates a new [StyledString]
 pub fn style<D: Display>(val: D) -> StyledString<D> {
@@ -91,5 +99,33 @@ impl Style {
     /// Creates an empty [Style]
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::style::{Attribute, Color, Style, Stylize};
+
+    #[test]
+    fn into_crossterm_style() {
+        let mut expected = crossterm::style::ContentStyle::new();
+        expected.foreground_color = Some(crossterm::style::Color::Red);
+        expected.background_color = Some(crossterm::style::Color::Rgb {
+            r: 32,
+            g: 50,
+            b: 45,
+        });
+        expected.attributes.set(crossterm::style::Attribute::Bold);
+
+        let style = Style::new()
+            .on(Color::Rgb {
+                r: 32,
+                g: 50,
+                b: 45,
+            })
+            .with(Color::BrightRed)
+            .attribute(Attribute::Bold);
+
+        assert_eq!(expected, style.into())
     }
 }
