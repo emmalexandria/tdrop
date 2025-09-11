@@ -8,7 +8,11 @@ use crossterm::{
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{layout::Width, terminal::TerminalInput};
+use crate::{
+    layout::Width,
+    terminal::TerminalInput,
+    widgets::{StatefulWidget, Widget},
+};
 
 /// [Terminal] is an abstraction over the terminal for use by widgets and applications.
 ///
@@ -168,5 +172,20 @@ impl<W: Write> Terminal<W> {
     /// Get a mutable reference to the handle
     pub fn get_handle_mut(&mut self) -> &mut W {
         &mut self.handle
+    }
+
+    /// Render a given [Widget] to the terminal
+    pub fn render_widget<R: Widget>(&mut self, widget: R, width: &Width) {
+        widget.render(width, self)
+    }
+
+    /// Enable raw mode
+    pub fn enable_raw(&mut self) -> std::io::Result<()> {
+        crossterm::terminal::enable_raw_mode()
+    }
+
+    /// Disable raw mode
+    pub fn disable_raw(&mut self) -> std::io::Result<()> {
+        crossterm::terminal::disable_raw_mode()
     }
 }

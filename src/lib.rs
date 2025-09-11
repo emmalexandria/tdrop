@@ -10,3 +10,5 @@ pub mod layout;
 pub mod style;
 #[deny(missing_docs)]
 pub mod terminal;
+#[deny(missing_docs)]
+pub mod widgets;
