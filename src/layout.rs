@@ -1,3 +1,5 @@
-mod rect;
+//! Provides facilities for laying out widgets within the terminal.
 
-pub use rect::Rect;
+mod width;
+
+pub use width::Width;

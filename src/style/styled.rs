@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::style::Style;
+use crate::{style::Style, terminal::TerminalInput};
 
 /// [StyledString] is a type associating a [Style] with any type which implements [Display].
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Default)]
@@ -50,6 +50,16 @@ impl<D: Display> Into<crossterm::style::StyledContent<D>> for StyledString<D> {
 impl<D: Display + Clone> Into<crossterm::style::StyledContent<D>> for &StyledString<D> {
     fn into(self) -> crossterm::style::StyledContent<D> {
         crossterm::style::StyledContent::new(self.style.into(), self.content.clone())
+    }
+}
+
+impl<D: Display> TerminalInput for StyledString<D> {
+    fn content(&self) -> String {
+        self.content.to_string()
+    }
+
+    fn style(&self) -> Style {
+        self.style
     }
 }
 

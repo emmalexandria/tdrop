@@ -5,6 +5,8 @@
 //! Implementation of ANSI colours and attributes for text styling
 
 #[deny(missing_docs)]
-pub mod buffer;
 pub mod layout;
+#[deny(missing_docs)]
 pub mod style;
+#[deny(missing_docs)]
+pub mod terminal;

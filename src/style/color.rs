@@ -44,7 +44,14 @@ pub enum Color {
     /// ANSI bright white. Foreground 97, background 107.
     White,
     /// An RGB color.
-    Rgb { r: u8, g: u8, b: u8 },
+    Rgb {
+        /// The red component of the RGB color
+        r: u8,
+        /// The green component of the RGB color
+        g: u8,
+        /// The blue component of the RGB color
+        b: u8,
+    },
     /// An ANSI color. See [256 colors - cheat sheet](https://jonasjacek.github.io/colors/) for more info.
     Indexed(u8),
 }
