@@ -1,36 +1,54 @@
 use std::io::{Stdout, Write};
 
 use crossterm::{
-    cursor::{MoveToNextLine, MoveToPreviousLine},
+    cursor::{MoveToColumn, MoveToNextLine, MoveToPreviousLine},
     style::Print,
     terminal::{Clear, ScrollDown, ScrollUp},
     ExecutableCommand, QueueableCommand,
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::terminal::TerminalInput;
+use crate::{layout::Width, terminal::TerminalInput};
 
-/// [Terminal] is an abstraction over the terminal for use by widgets
+/// [Terminal] is an abstraction over the terminal for use by widgets and applications.
+///
+/// [Terminal] holds any object which implements [Write], usually [Stdout] or
+/// [Stderr](std::io::Stderr).
+///
+/// ## Examples
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Terminal<W: Write> {
     handle: W,
-    /// The width of the output. Equal to terminal width if [None].
-    pub width: Option<u16>,
+    /// The width of the output. Equivalent to terminal width if [None].
+    pub width: Width,
 }
 
 impl Default for Terminal<Stdout> {
     fn default() -> Self {
         Self {
             handle: std::io::stdout(),
-            width: crossterm::terminal::size().ok().map(|w| w.0),
+            width: Width::default(),
         }
     }
 }
 
 impl<W: Write> Terminal<W> {
     /// Create a new [Terminal] with something implementing the [Write] trait.
-    pub const fn new(handle: W, width: Option<u16>) -> Self {
-        Self { handle, width }
+    pub fn new(handle: W) -> Self {
+        Self {
+            handle,
+            width: Width::default(),
+        }
+    }
+
+    /// Set the width of [Terminal] to the width of the actual terminal. Will ppanic if the width
+    /// of the terminal cannot be retrieved.
+    pub fn term_width(self) -> Self {
+        if let Ok(s) = crossterm::terminal::size() {
+            return self.width(s.0);
+        }
+
+        panic!("Failed to retreive terminal size");
     }
 
     /// Set the handle of the [Terminal] (reccommended: [Stdout] or [Stderr](std::io::Stderr))
@@ -41,19 +59,19 @@ impl<W: Write> Terminal<W> {
 
     /// Set the width of the [Terminal]
     pub fn width(mut self, width: u16) -> Self {
-        self.width = Some(width);
+        self.width = Width::new(0, width);
         self
     }
 
-    /// Print to the terminal
+    /// Print to the terminal. Will truncate text over the terminal's width.
     pub fn print<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        self.printn(text, usize::MAX, true)?;
+        self.printn(text, self.width.width as usize, true)?;
         Ok(())
     }
 
-    /// Print to the terminal and insert a new line
+    /// Print to the terminal and insert a new line. Will truncate text over the terminal's width.
     pub fn println<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        self.printn(text, usize::MAX, false)?
+        self.printn(text, self.width.width as usize, false)?
             .queue(ScrollUp(1))?
             .queue(MoveToNextLine(1))?;
 
@@ -62,7 +80,8 @@ impl<W: Write> Terminal<W> {
         Ok(())
     }
 
-    /// Prints n characters (graphemes) to the terminal, optionally flushing afterwards
+    /// Prints n characters (graphemes) to the terminal, optionally flushing afterwards. Can be
+    /// used to override the terminal width.
     pub fn printn<I: TerminalInput>(
         &mut self,
         text: I,
@@ -105,6 +124,17 @@ impl<W: Write> Terminal<W> {
         }
 
         Ok(())
+    }
+
+    /// Move the cursor to the given column
+    pub fn move_to(&mut self, column: u16) -> std::io::Result<()> {
+        self.handle.execute(MoveToColumn(column))?;
+        Ok(())
+    }
+
+    /// Move the cursor to the beginning of the current line
+    pub fn move_to_start(&mut self) -> std::io::Result<()> {
+        self.move_to(0)
     }
 
     /// Clears n lines from the bottom of the terminal
