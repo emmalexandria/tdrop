@@ -9,7 +9,7 @@ fn main() {
     terminal.println("Hello".with(Color::Red));
     terminal.println("Hello".with(Color::Red));
 
-    terminal.println("Hi");
+    println!("{}", "HI".with(Color::Green));
 
-    terminal.clear_n(2);
+    terminal.println("Hi");
 }
