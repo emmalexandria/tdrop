@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::{style::Style, terminal::TerminalInput};
+use crate::{
+    style::{AsStyle, AsStyleMut, Style},
+    terminal::TerminalInput,
+};
 
 /// [StyledString] is a type associating a [Style] with any type which implements [Display].
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Default)]
@@ -38,6 +41,18 @@ impl<D: Display> StyledString<D> {
     #[inline]
     pub fn len(&self) -> usize {
         self.content.to_string().len()
+    }
+}
+
+impl<D: Display> AsStyle for StyledString<D> {
+    fn as_style(&self) -> &Style {
+        &self.style
+    }
+}
+
+impl<D: Display> AsStyleMut for StyledString<D> {
+    fn as_style_mut(&mut self) -> &mut Style {
+        &mut self.style
     }
 }
 

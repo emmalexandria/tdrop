@@ -9,7 +9,7 @@
 //! its [Terminal](terminal::Terminal) abstraction is optional.
 //!
 //! ```
-//! use style::{Stylize, Attribute, Color};
+//! use tdrop::style::{Stylize, Attribute, Color};
 //!
 //! fn main() {
 //!     let text = "hello".with(Color::Red).on(Color::Green).attribute(Attribute::Bold);
