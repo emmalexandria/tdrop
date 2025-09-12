@@ -35,10 +35,10 @@ impl<D: Display> From<StyledString<D>> for Span {
 
 impl Widget for Span {
     fn render<W: std::io::Write>(
-        self,
+        &self,
         width: &crate::layout::Width,
         terminal: &mut crate::terminal::Terminal<W>,
     ) {
-        width.write(self.content, terminal);
+        width.write(self.content.clone(), terminal);
     }
 }
