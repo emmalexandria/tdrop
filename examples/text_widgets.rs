@@ -1,8 +1,8 @@
 use tdrop::{
     layout::Width,
-    style::{Attribute, Color, Stylize},
+    style::{Attribute, Color, Style, Stylize},
     terminal::Terminal,
-    widgets::Span,
+    widgets::{Line, Span},
 };
 
 fn main() {
@@ -20,4 +20,20 @@ fn main() {
 
     println!("Or we can use the terminal and render it to a fixed width");
     terminal.render_widget(span_stylize, &width);
+    terminal.newline();
+
+    let line = Line::default().style(Style::new().on(Color::Blue)).spans([
+        Span::raw("Hello")
+            .with(Color::Red)
+            .attribute(Attribute::Bold),
+        Span::raw(" "),
+        Span::raw("world!")
+            .with(Color::Green)
+            .attribute(Attribute::Underlined),
+    ]);
+
+    let centerd_area = Width::new(0, 50);
+    let line_center = Line::default().spans([Span::raw("Hello")]).right_aligned();
+
+    terminal.render_widget(line_center, &centerd_area);
 }

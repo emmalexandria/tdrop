@@ -116,6 +116,24 @@ impl Style {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// Patch this style with another given style, returning the result
+    ///
+    /// This method prioritises the colors of `self`, only overriding them if they are not
+    /// present. Attributes are extended, meaning any attributes from `other` will be added
+    /// to the attributes of the return value if not present, but no attributes will be removed.
+    #[must_use = "does not modify self, returns a new value"]
+    pub fn patch<S: Into<Style>>(&self, other: S) -> Self {
+        let other: Style = other.into();
+        Self {
+            fg: self.fg.or(other.fg),
+            bg: self.bg.or(other.bg),
+
+            underline: self.underline.or(other.underline),
+
+            attributes: self.attributes.patch(other.attributes),
+        }
+    }
 }
 
 #[cfg(test)]

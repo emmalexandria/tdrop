@@ -62,7 +62,8 @@ impl<'a> Span<'a> {
     /// Patches the [Style] of the span with another style.
     #[must_use = "moves the value of self and returns the modified value"]
     pub fn patch_style<S: Into<Style>>(mut self, style: S) -> Self {
-        todo!()
+        self.style = self.style.patch(style.into());
+        self
     }
 
     /// Resets the [Style] of the span.

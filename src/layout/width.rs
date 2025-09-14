@@ -79,6 +79,14 @@ impl Width {
 
         ret
     }
+
+    #[must_use]
+    pub(crate) fn indent_x(self, offset: u16) -> Self {
+        Self {
+            x: self.x.saturating_add(offset),
+            width: self.width.saturating_sub(offset),
+        }
+    }
 }
 
 #[cfg(test)]

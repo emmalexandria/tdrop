@@ -257,4 +257,12 @@ impl Attributes {
     pub fn is_empty(self) -> bool {
         self.0 == 0
     }
+
+    /// Patch these attributes with another set of attributes
+    #[must_use = "returns a new value"]
+    pub fn patch(self, other: Attributes) -> Self {
+        let mut attributes = self;
+        attributes.extend(other);
+        attributes
+    }
 }
