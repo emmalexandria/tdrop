@@ -38,6 +38,11 @@ pub use stylize::Stylize;
 
 use std::fmt::Display;
 
+/// Returns whether the terminal background is light
+pub fn is_light() -> bool {
+    terminal_light::luma().map_or(false, |luma| luma > 0.6)
+}
+
 /// Trait for retrieving the style of a type as a reference
 pub trait AsStyle {
     /// Get a reference to the type's style

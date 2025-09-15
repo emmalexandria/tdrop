@@ -301,9 +301,7 @@ dependencies = [
 name = "tdrop"
 version = "0.1.0"
 dependencies = [
- "bitflags",
  "crossterm",
- "document-features",
  "terminal-light",
  "unicode-segmentation",
  "unicode-truncate",
