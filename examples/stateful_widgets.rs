@@ -10,7 +10,6 @@ use tdrop::{
 
 fn main() {
     let mut terminal = Terminal::new(std::io::stdout()).term_width();
-    terminal.init();
     let theme = Theme::empty().info(Color::Blue).success(Color::Green);
     let width = terminal.width;
 
