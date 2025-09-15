@@ -13,7 +13,8 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
     layout::Width,
-    terminal::TerminalInput,
+    style::Style,
+    terminal::{Cell, TerminalInput},
     widgets::{StatefulWidget, Widget},
 };
 
@@ -69,6 +70,11 @@ impl<W: Write> Terminal<W> {
     pub fn width(mut self, width: u16) -> Self {
         self.width = Width::new(0, width);
         self
+    }
+
+    /// Set the style of a width
+    pub fn set_style<S: Into<Style>>(&mut self, style: S) {
+        let style = style.into();
     }
 
     /// Print to the terminal. Will truncate text over the terminal's width.

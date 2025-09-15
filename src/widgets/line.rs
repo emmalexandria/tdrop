@@ -159,6 +159,24 @@ impl<'a> Stylize for Line<'a> {
     }
 }
 
+impl<'a> From<String> for Line<'a> {
+    fn from(value: String) -> Self {
+        Self {
+            spans: vec![Span::raw(value)],
+            ..Default::default()
+        }
+    }
+}
+
+impl<'a> From<&str> for Line<'a> {
+    fn from(value: &str) -> Self {
+        Self {
+            spans: vec![Span::raw(value.to_string())],
+            ..Default::default()
+        }
+    }
+}
+
 impl<'a> IntoIterator for Line<'a> {
     type Item = Span<'a>;
     type IntoIter = std::vec::IntoIter<Span<'a>>;

@@ -13,6 +13,7 @@ mod text;
 
 pub use line::Line;
 pub use span::Span;
+pub use text::Text;
 
 /// [Widget] is the common trait for renderable widgets which do not require interactive state.
 ///

@@ -33,7 +33,10 @@ fn main() {
     ]);
 
     let centerd_area = Width::new(0, 50);
-    let line_center = Line::default().spans([Span::raw("Hello")]).right_aligned();
+    let line_center = Line::default()
+        .style(Style::default().on(Color::Yellow))
+        .spans([Span::raw("Hello")])
+        .centered();
 
     terminal.render_widget(line_center, &centerd_area);
 }
