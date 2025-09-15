@@ -64,7 +64,7 @@ impl Width {
 
     /// Write to the width on the given terminal
     pub fn write<W: Write, I: TerminalInput>(&self, text: I, term: &mut Terminal<W>) -> u16 {
-        let intersection = term.width.intersection(self);
+        let intersection = term.width().intersection(self);
 
         let _ = term.move_to(intersection.x);
         let _ = term.writen(text, intersection.width as usize, true);

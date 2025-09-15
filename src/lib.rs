@@ -78,8 +78,9 @@ pub fn init() -> Terminal<Stdout> {
 
 pub fn try_init() -> std::io::Result<Terminal<Stdout>> {
     enable_raw_mode()?;
+    let terminal = Terminal::new(std::io::stdout())?;
 
-    Ok(Terminal::new(std::io::stdout()))
+    Ok(terminal)
 }
 
 pub fn restore() {

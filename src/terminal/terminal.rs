@@ -46,13 +46,14 @@ impl Default for Terminal<Stdout> {
 
 impl<W: Write> Terminal<W> {
     /// Create a new [Terminal] with something implementing the [Write] trait.
-    pub fn new(handle: W) -> Self {
-        let width = Width::default();
-        Self {
+    pub fn new(handle: W) -> std::io::Result<Self> {
+        let term_width = crossterm::terminal::size()?.0;
+        let width = Width::new(0, term_width);
+        Ok(Self {
             handle,
             width,
             respect_exit: true,
-        }
+        })
     }
 
     /// Set the handle of the [Terminal] (reccommended: [Stdout] or [Stderr](std::io::Stderr))
@@ -61,10 +62,9 @@ impl<W: Write> Terminal<W> {
         self
     }
 
-    /// Set the width of the [Terminal]
-    pub fn width(mut self, width: u16) -> Self {
-        self.width = Width::new(0, width);
-        self
+    /// Get the width of the [Terminal]
+    pub fn width(&self) -> Width {
+        self.width
     }
 
     /// Print to the terminal. Will truncate text over the terminal's width.

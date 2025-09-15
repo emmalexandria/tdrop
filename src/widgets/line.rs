@@ -235,7 +235,7 @@ impl Line<'_> {
         parent_style: Style,
     ) {
         let style = self.style.patch(parent_style);
-        let intersection = width.intersection(&terminal.width);
+        let intersection = width.intersection(&terminal.width());
         let width = intersection.width as usize;
         if width == 0 {
             return;
