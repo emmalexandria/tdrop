@@ -38,8 +38,6 @@ pub use stylize::Stylize;
 
 use std::fmt::Display;
 
-use crate::theme::is_light;
-
 /// Trait for retrieving the style of a type as a reference
 pub trait AsStyle {
     /// Get a reference to the type's style
