@@ -59,6 +59,12 @@ impl Width {
     }
 }
 
+impl From<u16> for Width {
+    fn from(width: u16) -> Self {
+        Self { offset: 0, width }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Width;

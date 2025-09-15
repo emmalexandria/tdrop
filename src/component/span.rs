@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{component::Component, style::Style};
+use crate::{component::Component, layout::Width, style::Style};
 
 pub struct Span<'a> {
     pub content: Cow<'a, str>,
@@ -36,5 +36,8 @@ impl Component for Span<'_> {
         width: crate::layout::Width,
         term: &mut crate::terminal::Terminal<W>,
     ) {
+        let intersection = Width::from(term.width()).intersection(&width);
+
+        term.print(self.style.apply(self.content))
     }
 }

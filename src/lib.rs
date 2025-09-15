@@ -40,27 +40,9 @@
 //! ## Code Examples
 //!
 
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-
-use crate::terminal::Terminal;
-
+pub mod backend;
 pub mod component;
 pub mod layout;
 pub mod style;
 pub mod terminal;
 pub mod theme;
-
-pub fn run(func: impl FnOnce(&mut Terminal<std::io::Stdout>)) {
-    let mut term = Terminal::new(std::io::stdout());
-    init();
-    func(&mut term);
-    cleanup();
-}
-
-pub fn init() {
-    enable_raw_mode();
-}
-
-pub fn cleanup() {
-    disable_raw_mode();
-}
