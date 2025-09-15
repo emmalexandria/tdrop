@@ -7,14 +7,9 @@
 //! The primary part of this module is [Theme], which is composed of
 //! [ThemeStyles](styles::ThemeStyles) and a collection of [Template](templates::Template).     
 
-mod styles;
+mod theme;
 
-use std::{borrow::Cow, collections::HashMap, fmt::Display, process::Output};
-
-use crate::{
-    style::{AdaptiveStyle, Style, StyledString},
-    widgets::Span,
-};
+pub use theme::Theme;
 
 /// Returns if the terminal background is light. If this cannot be determined, return false.
 pub fn is_light() -> bool {

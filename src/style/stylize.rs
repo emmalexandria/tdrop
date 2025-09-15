@@ -19,24 +19,29 @@ pub trait Stylize: Sized {
     }
 
     /// Change the background [Color]
-    fn on(self, color: Color) -> Self::Styled {
+    fn on<C: Into<Color>>(self, color: C) -> Self::Styled {
         let mut styled = self.stylize();
-        styled.as_style_mut().bg = Some(color);
+        styled.as_style_mut().bg = Some(color.into());
         styled
     }
 
     /// Change the underline [Color]
-    fn underline(self, color: Color) -> Self::Styled {
+    fn underline<C: Into<Color>>(self, color: C) -> Self::Styled {
         let mut styled = self.stylize();
-        styled.as_style_mut().underline = Some(color);
+        styled.as_style_mut().underline = Some(color.into());
         styled
     }
 
     /// Set an [Attribute]
-    fn attribute(self, attribute: Attribute) -> Self::Styled {
+    fn attribute<A: Into<Attribute>>(self, attribute: A) -> Self::Styled {
         let mut styled = self.stylize();
-        styled.as_style_mut().attributes.set(attribute);
+        styled.as_style_mut().attributes.set(attribute.into());
         styled
+    }
+
+    /// Set the color to [Rest](Color::Reset)
+    fn reset(self) -> Self::Styled {
+        self.with(Color::Reset)
     }
 }
 

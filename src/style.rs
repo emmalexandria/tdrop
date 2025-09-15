@@ -30,7 +30,7 @@ mod color;
 mod styled;
 mod stylize;
 
-pub use adaptive::AdaptiveStyle;
+pub use adaptive::AdaptiveColor;
 pub use attributes::{Attribute, Attributes};
 pub use color::Color;
 pub use styled::StyledString;
