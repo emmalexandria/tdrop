@@ -40,10 +40,8 @@
 //! ## Code Examples
 //!
 
-#[deny(missing_docs)]
-use std::io::Stdout;
-
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-
-#[deny(missing_docs)]
+pub mod component;
+pub mod layout;
 pub mod style;
+pub mod terminal;
+pub mod theme;
