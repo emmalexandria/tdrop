@@ -21,12 +21,7 @@ fn main() {
 
     terminal.render_loop(&confirmation, &width, confirmation_state, |mut state| {
         match crossterm::event::read().unwrap() {
-            Event::Key(KeyEvent {
-                code,
-                modifiers,
-                kind: _,
-                state: _,
-            }) => match code {
+            Event::Key(key) => match key.code {
                 KeyCode::Char('y') => {
                     state.selected = true;
                     state.done = true;
@@ -37,11 +32,6 @@ fn main() {
                 }
                 KeyCode::Left | KeyCode::Right => state.selected = !state.selected,
                 KeyCode::Enter => state.done = true,
-                KeyCode::Char('c') => {
-                    if modifiers.contains(KeyModifiers::CONTROL) {
-                        process::exit(0);
-                    }
-                }
                 _ => {}
             },
             _ => {}
@@ -49,6 +39,4 @@ fn main() {
 
         state
     });
-
-    terminal.cleanup();
 }

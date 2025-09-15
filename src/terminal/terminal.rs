@@ -1,5 +1,6 @@
 use std::{
     io::{Stdout, Write},
+    process,
     time::{Duration, Instant},
 };
 
@@ -47,23 +48,11 @@ impl<W: Write> Terminal<W> {
     /// Create a new [Terminal] with something implementing the [Write] trait.
     pub fn new(handle: W) -> Self {
         let width = Width::default();
-        let mut ret = Self {
+        Self {
             handle,
             width,
             respect_exit: true,
-        };
-        ret.init();
-        ret
-    }
-
-    /// Initialise the terminal to prepare for output
-    pub fn init(&mut self) {
-        self.enable_raw();
-    }
-
-    /// Cleanup the terminal on program exit
-    pub fn cleanup(&mut self) {
-        self.disable_raw();
+        }
     }
 
     /// Set the width of [Terminal] to the width of the actual terminal. Will panic if the width
@@ -234,12 +223,40 @@ impl<W: Write> Terminal<W> {
         state: R::State,
         mut func: T,
     ) -> R::State {
+        self.enable_raw();
+
+        let mut run = true;
         let mut state = state;
-        while self.render_stateful_widget(widget, width, &state) {
+        while run {
             state = func(state);
+            run = self.render_stateful_widget(widget, width, &state);
+            if self.respect_exit && let Ok(exit) = self.check_exit() && exit {
+                process::exit(0);
+            }
         }
 
+        self.disable_raw();
         state
+    }
+
+    fn check_exit(&self) -> std::io::Result<bool> {
+        match crossterm::event::read()? {
+            crossterm::event::Event::Key(crossterm::event::KeyEvent {
+                code,
+                modifiers,
+                kind: _,
+                state: _,
+            }) => match code {
+                crossterm::event::KeyCode::Char('c') => {
+                    if modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
+                        return Ok(true);
+                    }
+                }
+                _ => {}
+            },
+            _ => {}
+        };
+        return Ok(false);
     }
 
     /// Enable raw mode
