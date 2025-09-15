@@ -24,17 +24,21 @@
 //! ```
 //!
 
+mod adaptive;
 mod attributes;
 mod color;
 mod styled;
 mod stylize;
 
+pub use adaptive::AdaptiveStyle;
 pub use attributes::{Attribute, Attributes};
 pub use color::Color;
 pub use styled::StyledString;
 pub use stylize::Stylize;
 
 use std::fmt::Display;
+
+use crate::theme::is_light;
 
 /// Trait for retrieving the style of a type as a reference
 pub trait AsStyle {
