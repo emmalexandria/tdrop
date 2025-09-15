@@ -40,6 +40,7 @@
 //! ## Code Examples
 //!
 
+#[deny(missing_docs)]
 use std::io::{Stdout, Write};
 
 use crossterm::{
@@ -70,6 +71,7 @@ where
     result
 }
 
+///
 pub fn init() -> Terminal<Stdout> {
     try_init().expect("failed to initialise terminal")
 }

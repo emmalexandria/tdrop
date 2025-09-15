@@ -55,16 +55,6 @@ impl<W: Write> Terminal<W> {
         }
     }
 
-    /// Set the width of [Terminal] to the width of the actual terminal. Will panic if the width
-    /// of the terminal cannot be retrieved.
-    pub fn term_width(self) -> Self {
-        if let Ok(s) = crossterm::terminal::size() {
-            return self.width(s.0);
-        }
-
-        panic!("Failed to retreive terminal size");
-    }
-
     /// Set the handle of the [Terminal] (reccommended: [Stdout] or [Stderr](std::io::Stderr))
     pub fn handle(mut self, handle: W) -> Self {
         self.handle = handle;
