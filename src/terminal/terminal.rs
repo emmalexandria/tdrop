@@ -1,4 +1,7 @@
-use std::io::{Stdout, Write};
+use std::{
+    io::{Stdout, Write},
+    time::{Duration, Instant},
+};
 
 use crossterm::{
     cursor::{MoveToColumn, MoveToNextLine, MoveToPreviousLine},
@@ -8,11 +11,17 @@ use crossterm::{
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{layout::Width, terminal::TerminalInput};
+use crate::{
+    layout::Width,
+    style::Style,
+    terminal::TerminalInput,
+    widgets::{StatefulWidget, Widget},
+};
 
 /// [Terminal] is an abstraction over the terminal for use by widgets and applications.
 ///
 /// [Terminal] holds any object which implements [Write], usually [Stdout] or
+/// [Stderr](std::io::Stderr).
 /// [Stderr](std::io::Stderr).
 ///
 /// ## Examples
@@ -35,13 +44,11 @@ impl Default for Terminal<Stdout> {
 impl<W: Write> Terminal<W> {
     /// Create a new [Terminal] with something implementing the [Write] trait.
     pub fn new(handle: W) -> Self {
-        Self {
-            handle,
-            width: Width::default(),
-        }
+        let width = Width::default();
+        Self { handle, width }
     }
 
-    /// Set the width of [Terminal] to the width of the actual terminal. Will ppanic if the width
+    /// Set the width of [Terminal] to the width of the actual terminal. Will panic if the width
     /// of the terminal cannot be retrieved.
     pub fn term_width(self) -> Self {
         if let Ok(s) = crossterm::terminal::size() {
@@ -168,5 +175,72 @@ impl<W: Write> Terminal<W> {
     /// Get a mutable reference to the handle
     pub fn get_handle_mut(&mut self) -> &mut W {
         &mut self.handle
+    }
+
+    /// Render a given [Widget] to the terminal
+    pub fn render_widget<R: Widget>(&mut self, widget: R, width: &Width) {
+        widget.render(width, self)
+    }
+
+    /// Render a given [StatefulWidget].
+    ///
+    /// This function should not be called directly unless you are confident in what you are doing.
+    fn render_stateful_widget<R: StatefulWidget>(
+        &mut self,
+        widget: &R,
+        width: &Width,
+        init: &R::State,
+    ) -> bool {
+        widget.render(width, self, init)
+    }
+
+    /// Render a [StatefulWidget] in a loop fixed to a given FPS. This is the intended way to
+    /// render a [StatefulWidget].
+    ///
+    /// Arguments:
+    /// * `widget` - A reference to the [StatefulWidget] to be rendered
+    /// * `width` - The width within which to render the widget
+    /// * `state` - The initial state of the widget
+    /// * `func` - A closure which gets passed the initial state of the widget, updates the state,
+    /// and returns the new state.
+    pub fn render_loop<R: StatefulWidget, T: FnMut(R::State) -> R::State>(
+        &mut self,
+        widget: &R,
+        width: &Width,
+        state: R::State,
+        mut func: T,
+        fps: u32,
+    ) -> R::State {
+        let frame_duration = Duration::from_secs_f64(1.0 / fps as f64);
+        let mut last_frame = Instant::now();
+
+        let mut last_state: R::State = state;
+
+        loop {
+            let now = Instant::now();
+            let delta = now - last_frame;
+
+            if delta >= frame_duration {
+                last_state = func(last_state);
+                let should_run = self.render_stateful_widget(widget, width, &last_state);
+                last_frame = now;
+
+                if !should_run {
+                    break;
+                }
+            }
+        }
+
+        last_state
+    }
+
+    /// Enable raw mode
+    pub fn enable_raw(&mut self) -> std::io::Result<()> {
+        crossterm::terminal::enable_raw_mode()
+    }
+
+    /// Disable raw mode
+    pub fn disable_raw(&mut self) -> std::io::Result<()> {
+        crossterm::terminal::disable_raw_mode()
     }
 }

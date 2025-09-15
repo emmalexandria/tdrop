@@ -48,7 +48,7 @@ impl Width {
 
     /// Check whether this [Width] intersects with another [Width]
     pub fn intersects(&self, other: &Self) -> bool {
-        return other.x > self.x && other.x < self.x + self.width;
+        return other.x >= self.x && other.x < self.x + self.width;
     }
 
     /// Returns the inersection between this [Width] and another [Width] as a [Width].
@@ -78,6 +78,14 @@ impl Width {
         let _ = term.newline();
 
         ret
+    }
+
+    #[must_use]
+    pub(crate) fn indent_x(self, offset: u16) -> Self {
+        Self {
+            x: self.x.saturating_add(offset),
+            width: self.width.saturating_sub(offset),
+        }
     }
 }
 

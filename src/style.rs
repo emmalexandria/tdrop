@@ -36,6 +36,18 @@ pub use stylize::Stylize;
 
 use std::fmt::Display;
 
+/// Trait for retrieving the style of a type as a reference
+pub trait AsStyle {
+    /// Get a reference to the type's style
+    fn as_style(&self) -> &Style;
+}
+
+/// Trait for retrieving the style of the type as a mutable reference.
+pub trait AsStyleMut {
+    /// Get a mutable reference to the type's style
+    fn as_style_mut(&mut self) -> &mut Style;
+}
+
 /// Creates a new [StyledString]
 pub fn style<D: Display>(val: D) -> StyledString<D> {
     Style::new().apply(val)
@@ -47,12 +59,16 @@ pub fn style<D: Display>(val: D) -> StyledString<D> {
 /// and applied [Attributes]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Style {
-    fg: Option<Color>,
-    bg: Option<Color>,
+    /// The foreground color of the style if any.
+    pub fg: Option<Color>,
+    /// The background color of the style if any.
+    pub bg: Option<Color>,
 
-    underline: Option<Color>,
+    /// The underline color of the style if any.
+    pub underline: Option<Color>,
 
-    attributes: Attributes,
+    /// The attributes of the style.
+    pub attributes: Attributes,
 }
 
 impl From<crossterm::style::ContentStyle> for Style {
@@ -77,14 +93,14 @@ impl Into<crossterm::style::ContentStyle> for Style {
     }
 }
 
-impl AsMut<Style> for Style {
-    fn as_mut(&mut self) -> &mut Style {
+impl AsStyleMut for Style {
+    fn as_style_mut(&mut self) -> &mut Style {
         self
     }
 }
 
-impl AsRef<Style> for Style {
-    fn as_ref(&self) -> &Style {
+impl AsStyle for Style {
+    fn as_style(&self) -> &Style {
         self
     }
 }
@@ -99,6 +115,24 @@ impl Style {
     /// Creates an empty [Style]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Patch this style with another given style, returning the result
+    ///
+    /// This method prioritises the colors of `self`, only overriding them if they are not
+    /// present. Attributes are extended, meaning any attributes from `other` will be added
+    /// to the attributes of the return value if not present, but no attributes will be removed.
+    #[must_use = "does not modify self, returns a new value"]
+    pub fn patch<S: Into<Style>>(&self, other: S) -> Self {
+        let other: Style = other.into();
+        Self {
+            fg: self.fg.or(other.fg),
+            bg: self.bg.or(other.bg),
+
+            underline: self.underline.or(other.underline),
+
+            attributes: self.attributes.patch(other.attributes),
+        }
     }
 }
 
