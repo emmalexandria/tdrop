@@ -1,34 +1,35 @@
 //! ![tdrop wordmark](https://github.com/emmalexandria/tdrop/blob/main/media/wordmark.svg?raw=true)
 //!
-//! `tdrop` provides flexible and ergonomic output for CLIs. It aims to bring the flexibility of
-//! TUI frameworks like [ratatui](https://github.com/ratatui/ratatui) to non-interactive contexts
-//! while still allowing for some interactivity in the form of prompts, progressbars, etc.
+//! # tdrop
 //!
-//! Naming conventions will be very famailiar to any who have used [ratatui](https://docs.rs/ratatui/latest/ratatui).
-//! `tdrop` can be used for both complex widget rendering and basic output to the terminal, and engagemenet with
-//! its [Terminal](terminal::Terminal) abstraction is optional.
+//! `tdrop` is a crate for creating CLI-first output.
 //!
-//! ```
-//! use tdrop::style::{Stylize, Attribute, Color};
-//!
-//! fn main() {
-//!     let text = "hello".with(Color::Red).on(Color::Green).attribute(Attribute::Bold);
-//!
-//!     println!("{text}") // This will render as bold red on green.
-//! }
-//! ```
-//!
-//! This code will be extremely familiar to anyone who has used [crossterm](https://docs.rs/crossterm/latest/crossterm/).
-//! This is because I wholeheartedly ripped off their code. Thanks guys <3. In all seriousness,
-//! `crossterm` is currently the rendering backend being used. I wanted to have control over the
-//! style types for the long term, but as of right now, they are functionally the `crossterm`
-//! types.
+//! # Quickstart
+//! Add `tdrop` as a dependency:
+//! `cargo add tdrop`
 //!
 //!
+//! # Introduction
 //!
-//! ```
+//! `tdrop` is based on a hybrid of immediate rendering and terminal scrollback. Although it is
+//! counter-intuitive for CLIs, it puts the terminal in raw mode for the duration of the runtime.
 //!
-//! ```
+//! ## Basic Components
+//! For basic components such as [Span](component::Span) which implement the
+//! [Component](component::Component) trait, the [Terminal](terminal::Terminal) will render
+//! the component to its active buffer area and then print the buffer.
+//!
+//! ## Stateful Components
+//! For stateful components such as [Confirmation](component::Confirmation) which implement the
+//! [StatefulComponent](component::StatefulComponent) trait, the rendering process operates a bit
+//! differently. The [Terminal](terminal::Terminal) will re-render the component at a fixed
+//! framerate, calling a user-provided closure to update the state of the component.
+//!
+//! It's important to note that this closure should only poll for events (non-blocking), as
+//! otherwise it interferes with the ability of the terminal to respond to control sequences.
+//!
+//!
+//!
 //!
 //! ## Important Types
 //! * [Terminal](terminal::Terminal) - Provides shared abstraction over the terminal for use by
