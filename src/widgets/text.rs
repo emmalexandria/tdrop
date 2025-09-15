@@ -28,7 +28,7 @@ impl<'a> Text<'a> {
         Self::from(lines)
     }
 
-    /// Create a new text widget with content and style
+    /// Create a new text widget with content and style.
     pub fn styled<T, S>(content: T, style: S) -> Self
     where
         T: Into<Cow<'a, str>>,
@@ -37,21 +37,54 @@ impl<'a> Text<'a> {
         Self::raw(content).patch_style(style.into())
     }
 
-    /// Get the unicode width of the text widget
+    /// Get the unicode width of the text widget.
     pub fn width(&self) -> usize {
         UnicodeWidthStr::width(self)
     }
 
-    /// Get the number of lines in the text widget
+    /// Get the number of lines in the text widget.
     pub fn height(&self) -> usize {
         self.lines.len()
     }
 
-    /// Patch the style of the text widget
+    /// Patch the style of the text widget.
     #[must_use = "moves the value of self and returns the modified value"]
     pub fn patch_style<S: Into<Style>>(mut self, style: S) -> Self {
         self.style = self.style.patch(style.into());
         self
+    }
+
+    /// Set the style of the text widget.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn style<S: Into<Style>>(mut self, style: S) -> Self {
+        self.style = style.into();
+        self
+    }
+
+    /// Reset the style of the text widget.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn reset_style(mut self) -> Self {
+        self.style = Style::default();
+        self
+    }
+
+    /// Set the alignment of the text widget.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn alignment(self, alignment: Alignment) -> Self {
+        Self {
+            alignment: Some(alignment),
+            ..self
+        }
+    }
+
+    /// Returns an iterator over the lines of the text.
+    pub fn iter(&self) -> core::slice::Iter<'_, Line<'a>> {
+        self.lines.iter()
+    }
+
+    /// Returns an iterator that allows modifying each line.
+    pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, Line<'a>> {
+        self.lines.iter_mut()
     }
 }
 
