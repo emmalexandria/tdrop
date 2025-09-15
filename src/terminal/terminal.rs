@@ -78,14 +78,14 @@ impl<W: Write> Terminal<W> {
     }
 
     /// Print to the terminal. Will truncate text over the terminal's width.
-    pub fn print<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        self.printn(text, self.width.width as usize, true)?;
+    pub fn write<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
+        self.writen(text, self.width.width as usize, true)?;
         Ok(())
     }
 
     /// Print to the terminal and insert a new line. Will truncate text over the terminal's width.
-    pub fn println<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        self.printn(text, self.width.width as usize, false)?
+    pub fn writeln<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
+        self.writen(text, self.width.width as usize, false)?
             .queue(ScrollUp(1))?
             .queue(MoveToNextLine(1))?;
 
@@ -96,7 +96,7 @@ impl<W: Write> Terminal<W> {
 
     /// Prints n characters (graphemes) to the terminal, optionally flushing afterwards. Can be
     /// used to override the terminal width.
-    pub fn printn<I: TerminalInput>(
+    pub fn writen<I: TerminalInput>(
         &mut self,
         text: I,
         n: usize,
@@ -156,14 +156,9 @@ impl<W: Write> Terminal<W> {
         Ok(())
     }
 
-    /// Move the cursor to the beginning of the current line
-    pub fn move_to_start(&mut self) -> std::io::Result<()> {
-        self.move_to(0)
-    }
-
     /// Clears n lines from the bottom of the terminal
     pub fn clear_n(&mut self, n: u16) -> std::io::Result<()> {
-        self.move_to_start()?;
+        self.move_to(0)?;
         if n > 1 {
             self.handle
                 .queue(MoveToPreviousLine(n))?

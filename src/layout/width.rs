@@ -67,7 +67,7 @@ impl Width {
         let intersection = term.width.intersection(self);
 
         let _ = term.move_to(intersection.x);
-        let _ = term.printn(text, intersection.width as usize, true);
+        let _ = term.writen(text, intersection.width as usize, true);
 
         intersection.width
     }

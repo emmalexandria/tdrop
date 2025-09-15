@@ -1,8 +1,12 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, io::Write};
 
 use unicode_width::UnicodeWidthStr;
 
-use crate::{layout::Alignment, style::Style, widgets::Line};
+use crate::{
+    layout::Alignment,
+    style::Style,
+    widgets::{Line, Widget},
+};
 
 /// Text represents a collection of [Lines](Line)
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash)]
@@ -112,6 +116,19 @@ impl<'a> From<Vec<Line<'a>>> for Text<'a> {
         Self {
             lines: value,
             ..Default::default()
+        }
+    }
+}
+
+impl Widget for Text<'_> {
+    fn render<W: std::io::Write>(
+        &self,
+        width: &crate::layout::Width,
+        terminal: &mut crate::terminal::Terminal<W>,
+    ) {
+        for line in &self.lines {
+            terminal.render_widget(line, width);
+            terminal.newline();
         }
     }
 }

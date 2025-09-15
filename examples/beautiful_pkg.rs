@@ -32,5 +32,5 @@ fn main() {
     terminal.newline();
     thread::sleep(Duration::from_secs_f64(5.0));
 
-    terminal.println("Hello");
+    terminal.write("Hello");
 }

@@ -2,7 +2,7 @@ use tdrop::{
     layout::Width,
     style::{Attribute, Color, Style, Stylize},
     terminal::Terminal,
-    widgets::{Line, Span},
+    widgets::{Line, Span, Text},
 };
 
 fn main() {
@@ -41,4 +41,10 @@ fn main() {
     println!("{line_center}");
 
     terminal.render_widget(line_center, &centerd_area);
+    terminal.newline();
+
+    let mut text = Text::default();
+    text.lines = vec![Line::raw("Hello"), Line::raw("World")];
+
+    terminal.render_widget(text, &centerd_area);
 }
