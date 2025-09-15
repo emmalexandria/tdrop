@@ -29,7 +29,7 @@ use crate::{
 pub struct Terminal<W: Write> {
     handle: W,
     /// The width of the output. Equivalent to terminal width if [None].
-    pub width: Width,
+    width: Width,
     /// Whether the terminal will automatically handle CTRL+C.
     pub respect_exit: bool,
 }

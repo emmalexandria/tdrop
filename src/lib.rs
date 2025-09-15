@@ -40,6 +40,15 @@
 //! ## Code Examples
 //!
 
+use std::io::{Stdout, Write};
+
+use crossterm::{
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
+
+use crate::terminal::Terminal;
+
 #[deny(missing_docs)]
 pub mod layout;
 #[deny(missing_docs)]
@@ -50,3 +59,27 @@ pub mod terminal;
 pub mod theme;
 #[deny(missing_docs)]
 pub mod widgets;
+
+pub fn run<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut Terminal<Stdout>) -> R,
+{
+    let mut terminal = init();
+    let result = f(&mut terminal);
+    restore();
+    result
+}
+
+pub fn init() -> Terminal<Stdout> {
+    try_init().expect("failed to initialise terminal")
+}
+
+pub fn try_init() -> std::io::Result<Terminal<Stdout>> {
+    enable_raw_mode()?;
+
+    Ok(Terminal::new(std::io::stdout()))
+}
+
+pub fn restore() {
+    disable_raw_mode();
+}
