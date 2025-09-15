@@ -73,6 +73,11 @@ impl<'a> Span<'a> {
         self
     }
 
+    /// Set the [Style] of the span.
+    pub fn set_style<S: Into<Style>>(&mut self, style: S) {
+        self.style = style.into();
+    }
+
     /// Returns the unicode width of the span.
     pub fn width(&self) -> usize {
         UnicodeWidthStr::width(self)

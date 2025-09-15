@@ -7,6 +7,7 @@ use std::io::Write;
 
 use crate::{layout::Width, terminal::Terminal};
 
+pub mod confirmation;
 mod line;
 mod span;
 mod text;

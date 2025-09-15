@@ -119,6 +119,41 @@ impl Style {
         Self::default()
     }
 
+    /// Set the foreground [Color] and return the modified value of self.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn fg<C: Into<Color>>(mut self, color: C) -> Self {
+        self.fg = Some(color.into());
+        self
+    }
+
+    /// Set the background [Color] and return the modified value of self.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn bg<C: Into<Color>>(mut self, color: C) -> Self {
+        self.bg = Some(color.into());
+        self
+    }
+
+    /// Set the underline [Color] and return the modified value of self.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn underline<C: Into<Color>>(mut self, color: C) -> Self {
+        self.underline = Some(color.into());
+        self
+    }
+
+    /// Set the [Attributes] and return the modified value of self.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn attributes(mut self, attributes: Attributes) -> Self {
+        self.attributes = attributes;
+        self
+    }
+
+    /// Set an [Attribute] and return the modified value of self.
+    #[must_use = "moves the value of self and returns the modified value"]
+    pub fn attribute(mut self, attr: Attribute) -> Self {
+        self.attributes.set(attr);
+        self
+    }
+
     /// Patch this style with another given style, returning the result
     ///
     /// This method prioritises the colors of `self`, only overriding them if they are not

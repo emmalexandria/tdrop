@@ -257,7 +257,6 @@ impl Line<'_> {
             let indent_width = u16::try_from(indent_width).unwrap_or(u16::MAX);
 
             let width = intersection.indent_x(indent_width);
-            println!("{:?}, {:?}", intersection, width);
             render_spans(&self.spans, width, terminal, 0, style);
         } else {
             let skip_width = match alignment {

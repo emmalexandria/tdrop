@@ -12,9 +12,9 @@ pub trait Stylize: Sized {
     fn stylize(self) -> Self::Styled;
 
     /// Change the foreground [Color]
-    fn with(self, color: Color) -> Self::Styled {
+    fn with<C: Into<Color>>(self, color: C) -> Self::Styled {
         let mut styled = self.stylize();
-        styled.as_style_mut().fg = Some(color);
+        styled.as_style_mut().fg = Some(color.into());
         styled
     }
 

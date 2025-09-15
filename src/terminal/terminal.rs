@@ -13,7 +13,6 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
     layout::Width,
-    style::Style,
     terminal::TerminalInput,
     widgets::{StatefulWidget, Widget},
 };
@@ -156,9 +155,15 @@ impl<W: Write> Terminal<W> {
 
     /// Clears n lines from the bottom of the terminal
     pub fn clear_n(&mut self, n: u16) -> std::io::Result<()> {
-        self.handle
-            .queue(MoveToPreviousLine(n))?
-            .queue(Clear(crossterm::terminal::ClearType::FromCursorDown))?;
+        self.move_to_start()?;
+        if n > 1 {
+            self.handle
+                .queue(MoveToPreviousLine(n))?
+                .queue(Clear(crossterm::terminal::ClearType::FromCursorDown))?;
+        } else {
+            self.handle
+                .queue(Clear(crossterm::terminal::ClearType::FromCursorDown))?;
+        }
         Ok(())
     }
 
@@ -189,9 +194,9 @@ impl<W: Write> Terminal<W> {
         &mut self,
         widget: &R,
         width: &Width,
-        init: &R::State,
+        state: &R::State,
     ) -> bool {
-        widget.render(width, self, init)
+        widget.render(width, self, state)
     }
 
     /// Render a [StatefulWidget] in a loop fixed to a given FPS. This is the intended way to
@@ -209,29 +214,19 @@ impl<W: Write> Terminal<W> {
         width: &Width,
         state: R::State,
         mut func: T,
-        fps: u32,
     ) -> R::State {
-        let frame_duration = Duration::from_secs_f64(1.0 / fps as f64);
-        let mut last_frame = Instant::now();
+        self.enable_raw();
 
-        let mut last_state: R::State = state;
-
-        loop {
-            let now = Instant::now();
-            let delta = now - last_frame;
-
-            if delta >= frame_duration {
-                last_state = func(last_state);
-                let should_run = self.render_stateful_widget(widget, width, &last_state);
-                last_frame = now;
-
-                if !should_run {
-                    break;
-                }
-            }
+        let mut run = self.render_stateful_widget(widget, width, &state);
+        let mut state = state;
+        while run {
+            run = self.render_stateful_widget(widget, width, &state);
+            state = func(state);
         }
 
-        last_state
+        self.disable_raw();
+
+        state
     }
 
     /// Enable raw mode
