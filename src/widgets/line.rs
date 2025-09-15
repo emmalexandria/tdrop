@@ -212,14 +212,15 @@ impl Widget for Line<'_> {
 
 impl Widget for &Line<'_> {
     fn render<W: std::io::Write>(&self, width: &Width, terminal: &mut Terminal<W>) {
-        self.render_with_alignment(width, terminal, None);
+        self.render_with_alignment(width, terminal, None, self.style);
     }
 }
 
 impl Display for Line<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for span in &self.spans {
-            write!(f, "{span}")?;
+            let copy = span.clone().patch_style(self.style);
+            write!(f, "{copy}")?;
         }
         Ok(())
     }
@@ -231,7 +232,9 @@ impl Line<'_> {
         width: &Width,
         terminal: &mut Terminal<W>,
         parent_alignment: Option<Alignment>,
+        parent_style: Style,
     ) {
+        let style = self.style.patch(parent_style);
         let intersection = width.intersection(&terminal.width);
         let width = intersection.width as usize;
         if width == 0 {
@@ -255,14 +258,14 @@ impl Line<'_> {
 
             let width = intersection.indent_x(indent_width);
             println!("{:?}, {:?}", intersection, width);
-            render_spans(&self.spans, width, terminal, 0);
+            render_spans(&self.spans, width, terminal, 0, style);
         } else {
             let skip_width = match alignment {
                 Some(Alignment::Center) => (line_width.saturating_sub(line_width)) / 2,
                 Some(Alignment::Right) => line_width.saturating_sub(line_width),
                 Some(Alignment::Left) | None => 0,
             };
-            render_spans(&self.spans, intersection, terminal, skip_width);
+            render_spans(&self.spans, intersection, terminal, skip_width, style);
         }
     }
 }
@@ -272,8 +275,10 @@ fn render_spans<W: Write>(
     mut width: Width,
     terminal: &mut Terminal<W>,
     span_skip_width: usize,
+    parent_style: Style,
 ) {
     for (span, span_width, offset) in spans_after_width(spans, span_skip_width) {
+        let span = span.clone().patch_style(parent_style);
         width = width.indent_x(offset);
 
         if width.width == 0 {

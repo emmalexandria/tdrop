@@ -5,4 +5,3 @@ mod width;
 
 pub use alignment::Alignment;
 pub use width::Width;
-

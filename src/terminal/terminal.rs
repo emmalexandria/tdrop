@@ -14,7 +14,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
     layout::Width,
     style::Style,
-    terminal::{Cell, TerminalInput},
+    terminal::TerminalInput,
     widgets::{StatefulWidget, Widget},
 };
 
@@ -44,10 +44,8 @@ impl Default for Terminal<Stdout> {
 impl<W: Write> Terminal<W> {
     /// Create a new [Terminal] with something implementing the [Write] trait.
     pub fn new(handle: W) -> Self {
-        Self {
-            handle,
-            width: Width::default(),
-        }
+        let width = Width::default();
+        Self { handle, width }
     }
 
     /// Set the width of [Terminal] to the width of the actual terminal. Will panic if the width
@@ -70,11 +68,6 @@ impl<W: Write> Terminal<W> {
     pub fn width(mut self, width: u16) -> Self {
         self.width = Width::new(0, width);
         self
-    }
-
-    /// Set the style of a width
-    pub fn set_style<S: Into<Style>>(&mut self, style: S) {
-        let style = style.into();
     }
 
     /// Print to the terminal. Will truncate text over the terminal's width.
