@@ -29,6 +29,8 @@ pub struct Terminal<W: Write> {
     handle: W,
     /// The width of the output. Equivalent to terminal width if [None].
     pub width: Width,
+    /// Whether the terminal will automatically handle CTRL+C.
+    pub respect_exit: bool,
 }
 
 impl Default for Terminal<Stdout> {
@@ -36,6 +38,7 @@ impl Default for Terminal<Stdout> {
         Self {
             handle: std::io::stdout(),
             width: Width::default(),
+            respect_exit: true,
         }
     }
 }
@@ -44,7 +47,23 @@ impl<W: Write> Terminal<W> {
     /// Create a new [Terminal] with something implementing the [Write] trait.
     pub fn new(handle: W) -> Self {
         let width = Width::default();
-        Self { handle, width }
+        let mut ret = Self {
+            handle,
+            width,
+            respect_exit: true,
+        };
+        ret.init();
+        ret
+    }
+
+    /// Initialise the terminal to prepare for output
+    pub fn init(&mut self) {
+        self.enable_raw();
+    }
+
+    /// Cleanup the terminal on program exit
+    pub fn cleanup(&mut self) {
+        self.disable_raw();
     }
 
     /// Set the width of [Terminal] to the width of the actual terminal. Will panic if the width
@@ -215,16 +234,10 @@ impl<W: Write> Terminal<W> {
         state: R::State,
         mut func: T,
     ) -> R::State {
-        self.enable_raw();
-
-        let mut run = self.render_stateful_widget(widget, width, &state);
         let mut state = state;
-        while run {
-            run = self.render_stateful_widget(widget, width, &state);
+        while self.render_stateful_widget(widget, width, &state) {
             state = func(state);
         }
-
-        self.disable_raw();
 
         state
     }
