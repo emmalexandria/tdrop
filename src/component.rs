@@ -4,13 +4,10 @@
 
 use std::io::Write;
 
-use crate::{layout::Width, terminal::Terminal};
-
-mod span;
-pub use span::Span;
+use crate::{backend::Backend, layout::Width, terminal::Terminal};
 
 /// Component is the building block of `tdrop` rendering
 pub trait Component {
     /// Render the component to the terminal
-    fn render<W: Write>(self, width: Width, term: &mut Terminal<W>);
+    fn render<B: Backend>(self, width: Width, term: &mut Terminal<B>);
 }

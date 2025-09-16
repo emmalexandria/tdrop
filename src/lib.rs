@@ -42,6 +42,7 @@
 //!
 
 pub mod backend;
+pub mod buffer;
 pub mod component;
 pub mod layout;
 pub mod style;
