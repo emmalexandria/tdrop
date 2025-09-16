@@ -1,4 +1,5 @@
 use std::io::{self, Write};
+use std::time::Duration;
 
 use crate::buffer::Cell;
 use crate::layout::{Position, Size};
@@ -6,6 +7,7 @@ use crate::style::{Attribute, Attributes, Color};
 
 use crossterm::cursor::{Hide, MoveTo, Show};
 
+use crossterm::event::KeyModifiers;
 use crossterm::style::{
     Attribute as CrosstermAttr, Attributes as CrosstermAttrs, Color as CrosstermColor,
     Colors as CrosstermColors, ContentStyle, Print, SetAttribute, SetBackgroundColor, SetColors,
@@ -25,6 +27,7 @@ pub enum ClearType {
 
 pub trait Backend {
     type Error: std::error::Error;
+    type Event;
 
     fn draw<'a, I>(&mut self, content: I) -> Result<(), Self::Error>
     where
@@ -47,6 +50,10 @@ pub trait Backend {
     fn size(&self) -> Result<Size, Self::Error>;
 
     fn flush(&mut self) -> Result<(), Self::Error>;
+
+    /// Retrieve any events from the terminal backend, intercepting CTRL+C if the terminal is
+    /// configured to
+    fn read_event(&self) -> Option<(Self::Event, bool)>;
 }
 
 pub struct CrosstermBackend<W: Write> {
@@ -88,6 +95,7 @@ where
     W: Write,
 {
     type Error = io::Error;
+    type Event = crossterm::event::Event;
 
     fn draw<'a, I>(&mut self, content: I) -> Result<(), Self::Error>
     where
@@ -178,6 +186,28 @@ where
 
     fn flush(&mut self) -> io::Result<()> {
         self.writer.flush()
+    }
+
+    fn read_event(&self) -> Option<(Self::Event, bool)> {
+        if crossterm::event::poll(Duration::from_secs(0)).ok()? {
+            let ev = crossterm::event::read().ok()?;
+            let mut should_exit = false;
+
+            match ev {
+                crossterm::event::Event::Key(crossterm::event::KeyEvent {
+                    code: crossterm::event::KeyCode::Char('c'),
+                    modifiers: KeyModifiers::CONTROL,
+                    ..
+                }) => {
+                    should_exit = true;
+                }
+                _ => {}
+            }
+
+            return Some((ev, should_exit));
+        }
+
+        None
     }
 }
 

@@ -25,6 +25,7 @@ pub struct Terminal<B: Backend> {
     viewport_area: Rect,
     last_known_area: Rect,
     last_known_cursor_pos: Position,
+    respect_exit: bool,
 }
 
 impl<B: Backend> Terminal<B> {
@@ -62,6 +63,7 @@ impl<B: Backend> Terminal<B> {
             viewport_area,
             last_known_area: area,
             last_known_cursor_pos: cursor_pos,
+            respect_exit: options.respect_exit,
         })
     }
 
@@ -151,7 +153,7 @@ impl<B: Backend> Terminal<B> {
         match cursor_position {
             None => self.hide_cursor()?,
             Some(position) => {
-                self.show_cursor();
+                self.show_cursor()?;
                 self.set_cursor_position(position)?
             }
         }
@@ -234,6 +236,10 @@ impl<B: Backend> Terminal<B> {
 
     pub fn size(&mut self) -> Result<Size, B::Error> {
         self.backend.size()
+    }
+
+    pub fn poll_event(&self) -> Option<(B::Event, bool)> {
+        self.backend.read_event()
     }
 }
 
