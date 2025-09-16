@@ -1,6 +1,6 @@
 use crate::{
+    style::is_light,
     style::{Color, Style},
-    theme::is_light,
 };
 
 /// Represents a [Color] which is different based on if the terminal background is light or dark.

@@ -1,7 +1,10 @@
-//! Provides the [Terminal] abstraction over terminal output.
+//! Implements the [Terminal] abstraction over output.
 
-mod input;
+mod viewport;
+pub use viewport::Viewport;
+
 mod terminal;
-
-pub use input::TerminalInput;
 pub use terminal::Terminal;
+
+mod frame;
+pub use frame::Frame;

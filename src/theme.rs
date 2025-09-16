@@ -9,11 +9,6 @@
 
 use crate::style::{AdaptiveColor, Color};
 
-/// Returns if the terminal background is light. If this cannot be determined, return false.
-pub fn is_light() -> bool {
-    terminal_light::luma().map_or(false, |luma| luma > 0.6)
-}
-
 /// A theme represents a set of output colours which adapt to the terminal background
 /// ([AdaptiveColor]).
 ///

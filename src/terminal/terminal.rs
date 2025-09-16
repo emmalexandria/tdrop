@@ -1,256 +1,285 @@
-use std::{
-    io::{Stdout, Write},
-    process,
-    time::{Duration, Instant},
-};
+use crate::backend::Backend;
+use crate::backend::ClearType;
+use crate::buffer::Buffer;
+use crate::layout::Position;
+use crate::layout::Rect;
+use crate::layout::Size;
+use crate::terminal::frame::CompletedFrame;
+use crate::terminal::Frame;
+use crate::terminal::Viewport;
 
-use crossterm::{
-    cursor::{MoveToColumn, MoveToNextLine, MoveToPreviousLine},
-    style::Print,
-    terminal::{Clear, ScrollDown, ScrollUp},
-    ExecutableCommand, QueueableCommand,
-};
-use unicode_segmentation::UnicodeSegmentation;
-
-use crate::{
-    layout::Width,
-    terminal::TerminalInput,
-    widgets::{StatefulWidget, Widget},
-};
-
-/// [Terminal] is an abstraction over the terminal for use by widgets and applications.
-///
-/// [Terminal] holds any object which implements [Write], usually [Stdout] or
-/// [Stderr](std::io::Stderr).
-/// [Stderr](std::io::Stderr).
-///
-/// ## Examples
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Terminal<W: Write> {
-    handle: W,
-    /// The width of the output. Equivalent to terminal width if [None].
-    width: Width,
-    /// Whether the terminal will automatically handle CTRL+C.
-    pub respect_exit: bool,
+pub struct Options {
+    /// Whether the terminal should respect CTRL+C
+    respect_exit: bool,
+    viewport: Viewport,
 }
 
-impl Default for Terminal<Stdout> {
-    fn default() -> Self {
-        Self {
-            handle: std::io::stdout(),
-            width: Width::default(),
-            respect_exit: true,
-        }
+/// An abstraction over output through a given backend
+pub struct Terminal<B: Backend> {
+    backend: B,
+    buffers: [Buffer; 2],
+    /// Index of the current buffer
+    current: usize,
+    hidden_cursor: bool,
+    viewport: Viewport,
+    viewport_area: Rect,
+    last_known_area: Rect,
+    last_known_cursor_pos: Position,
+    respect_exit: bool,
+}
+
+impl<B: Backend> Terminal<B> {
+    /// Create a new terminal with the given handle (implementing [Write]).
+    /// Returns none if terminal width cannot be retrieved
+    pub fn new(backend: B) -> Result<Self, B::Error> {
+        Self::with_options(
+            backend,
+            Options {
+                respect_exit: true,
+                viewport: Viewport::Inline(1),
+            },
+        )
     }
-}
 
-impl<W: Write> Terminal<W> {
-    /// Create a new [Terminal] with something implementing the [Write] trait.
-    pub fn new(handle: W) -> std::io::Result<Self> {
-        let term_width = crossterm::terminal::size()?.0;
-        let width = Width::new(0, term_width);
+    pub fn with_options(mut backend: B, options: Options) -> Result<Self, B::Error> {
+        let area = match options.viewport {
+            Viewport::Inline(height) => backend.size()?.into(),
+            Viewport::Fixed(rect) => rect,
+        };
+
+        let (viewport_area, cursor_pos) = match options.viewport {
+            Viewport::Inline(height) => {
+                compute_inline_size(&mut backend, height, area.as_size(), 0)?
+            }
+            Viewport::Fixed(area) => (area, area.as_position()),
+        };
+
         Ok(Self {
-            handle,
-            width,
-            respect_exit: true,
+            backend,
+            buffers: [Buffer::empty(viewport_area), Buffer::empty(viewport_area)],
+            current: 0,
+            hidden_cursor: false,
+            viewport: options.viewport,
+            viewport_area,
+            last_known_area: area,
+            last_known_cursor_pos: cursor_pos,
+            respect_exit: options.respect_exit,
         })
     }
 
-    /// Set the handle of the [Terminal] (reccommended: [Stdout] or [Stderr](std::io::Stderr))
-    pub fn handle(mut self, handle: W) -> Self {
-        self.handle = handle;
-        self
+    pub const fn get_frame(&mut self) -> Frame<'_> {
+        Frame {
+            cursor_position: None,
+            viewport_area: self.viewport_area,
+            buffer: self.current_buffer_mut(),
+        }
     }
 
-    /// Get the width of the [Terminal]
-    pub fn width(&self) -> Width {
-        self.width
+    pub const fn current_buffer_mut(&mut self) -> &mut Buffer {
+        &mut self.buffers[self.current]
     }
 
-    /// Print to the terminal. Will truncate text over the terminal's width.
-    pub fn write<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        self.writen(text, self.width.width as usize, true)?;
-        Ok(())
+    pub const fn backend(&self) -> &B {
+        &self.backend
     }
 
-    /// Print to the terminal and insert a new line. Will truncate text over the terminal's width.
-    pub fn writeln<I: TerminalInput>(&mut self, text: I) -> std::io::Result<()> {
-        self.writen(text, self.width.width as usize, false)?
-            .queue(ScrollUp(1))?
-            .queue(MoveToNextLine(1))?;
-
-        self.handle.flush()?;
-
-        Ok(())
+    pub const fn backend_mut(&mut self) -> &mut B {
+        &mut self.backend
     }
 
-    /// Prints n characters (graphemes) to the terminal, optionally flushing afterwards. Can be
-    /// used to override the terminal width.
-    pub fn writen<I: TerminalInput>(
-        &mut self,
-        text: I,
-        n: usize,
-        flush: bool,
-    ) -> std::io::Result<&mut W> {
-        let first_n: String;
-        if text.content().len() > n {
-            first_n = text
-                // Get text content
-                .content()
-                // Split into graphemes
-                .graphemes(true)
-                // Take the first n graphemes
-                .take(n)
-                // Collect into a vec of strings
-                .collect::<Vec<&str>>()
-                // Join into a single String
-                .join("");
-        } else {
-            first_n = text.content();
+    /// Gets a diff between the current and previous buffers and passes it to the backend to be
+    /// drawn
+    pub fn flush(&mut self) -> Result<(), B::Error> {
+        let previous_buffer = &self.buffers[1 - self.current];
+        let current_buffer = &self.buffers[self.current];
+        let updates = previous_buffer.diff(current_buffer);
+        if let Some((col, row, _)) = updates.last() {
+            self.last_known_cursor_pos = Position { x: *col, y: *row };
         }
 
-        let res = self.handle.queue(Print(text.style().apply(first_n)))?;
-
-        if flush {
-            res.flush()?;
-        }
-
-        Ok(res)
+        self.backend.draw(updates.into_iter())
     }
 
-    /// Create a new line
-    pub fn newline(&mut self) -> std::io::Result<()> {
-        self.handle
-            .queue(MoveToNextLine(1))?
-            .queue(ScrollUp(1))?
-            .flush()?;
+    pub fn resize(&mut self, area: Rect) -> Result<(), B::Error> {
+        let next_area = match self.viewport {
+            Viewport::Inline(height) => {
+                let offset_in_previous_viewport = self
+                    .last_known_cursor_pos
+                    .y
+                    .saturating_sub(self.viewport_area.top());
+                compute_inline_size(
+                    &mut self.backend,
+                    height,
+                    area.as_size(),
+                    offset_in_previous_viewport,
+                )?
+                .0
+            }
+            Viewport::Fixed(_) => area,
+        };
 
+        self.set_viewport_area(next_area);
+        self.clear()?;
+
+        self.last_known_area = area;
         Ok(())
     }
 
-    /// Scroll the terminal n lines. n > 0 will scroll up (create blank lines), n < 0 will scroll
-    /// down (delete lines). n == 0 will do nothing
-    pub fn scroll(&mut self, n: i32) -> std::io::Result<()> {
-        if n > 0 {
-            self.handle.execute(ScrollUp(1))?;
-        } else if n < 0 {
-            self.handle.execute(ScrollDown(1))?;
-        }
-
-        Ok(())
+    pub fn draw<F>(&mut self, render_callback: F) -> Result<CompletedFrame<'_>, B::Error>
+    where
+        F: FnOnce(&mut Frame),
+    {
+        self.try_draw(|frame| {
+            render_callback(frame);
+            Ok::<(), B::Error>(())
+        })
     }
 
-    /// Move the cursor to the given column
-    pub fn move_to(&mut self, column: u16) -> std::io::Result<()> {
-        self.handle.execute(MoveToColumn(column))?;
-        Ok(())
-    }
+    pub fn try_draw<F, E>(&mut self, render_callback: F) -> Result<CompletedFrame<'_>, B::Error>
+    where
+        F: FnOnce(&mut Frame) -> Result<(), E>,
+        E: Into<B::Error>,
+    {
+        self.autoresize()?;
 
-    /// Clears n lines from the bottom of the terminal
-    pub fn clear_n(&mut self, n: u16) -> std::io::Result<()> {
-        self.move_to(0)?;
-        if n > 1 {
-            self.handle
-                .queue(MoveToPreviousLine(n))?
-                .queue(Clear(crossterm::terminal::ClearType::FromCursorDown))?;
-        } else {
-            self.handle
-                .queue(Clear(crossterm::terminal::ClearType::FromCursorDown))?;
-        }
-        Ok(())
-    }
+        let mut frame = self.get_frame();
 
-    /// Flush queued changes to the handle
-    pub fn flush(&mut self) -> std::io::Result<()> {
-        self.handle.flush()
-    }
+        render_callback(&mut frame).map_err(Into::into)?;
 
-    /// Get a reference to the handle
-    pub fn get_handle(&self) -> &W {
-        &self.handle
-    }
+        let cursor_position = frame.cursor_position;
 
-    /// Get a mutable reference to the handle
-    pub fn get_handle_mut(&mut self) -> &mut W {
-        &mut self.handle
-    }
+        self.flush()?;
 
-    /// Render a given [Widget] to the terminal
-    pub fn render_widget<R: Widget>(&mut self, widget: R, width: &Width) {
-        widget.render(width, self)
-    }
-
-    /// Render a given [StatefulWidget].
-    ///
-    /// This function should not be called directly unless you are confident in what you are doing.
-    fn render_stateful_widget<R: StatefulWidget>(
-        &mut self,
-        widget: &R,
-        width: &Width,
-        state: &R::State,
-    ) -> bool {
-        widget.render(width, self, state)
-    }
-
-    /// Render a [StatefulWidget] in a loop fixed to a given FPS. This is the intended way to
-    /// render a [StatefulWidget].
-    ///
-    /// Arguments:
-    /// * `widget` - A reference to the [StatefulWidget] to be rendered
-    /// * `width` - The width within which to render the widget
-    /// * `state` - The initial state of the widget
-    /// * `func` - A closure which gets passed the initial state of the widget, updates the state,
-    /// and returns the new state.
-    pub fn render_loop<R: StatefulWidget, T: FnMut(R::State) -> R::State>(
-        &mut self,
-        widget: &R,
-        width: &Width,
-        state: R::State,
-        mut func: T,
-    ) -> R::State {
-        self.enable_raw();
-
-        let mut run = true;
-        let mut state = state;
-        while run {
-            state = func(state);
-            run = self.render_stateful_widget(widget, width, &state);
-            if self.respect_exit && let Ok(exit) = self.check_exit() && exit {
-                process::exit(0);
+        match cursor_position {
+            None => self.hide_cursor()?,
+            Some(position) => {
+                self.show_cursor()?;
+                self.set_cursor_position(position)?
             }
         }
 
-        self.disable_raw();
-        state
-    }
+        self.swap_buffers();
 
-    fn check_exit(&self) -> std::io::Result<bool> {
-        match crossterm::event::read()? {
-            crossterm::event::Event::Key(crossterm::event::KeyEvent {
-                code,
-                modifiers,
-                kind: _,
-                state: _,
-            }) => match code {
-                crossterm::event::KeyCode::Char('c') => {
-                    if modifiers.contains(crossterm::event::KeyModifiers::CONTROL) {
-                        return Ok(true);
-                    }
-                }
-                _ => {}
-            },
-            _ => {}
+        self.backend.flush()?;
+
+        let completed_frame = CompletedFrame {
+            buffer: &self.buffers[1 - self.current],
+            area: self.last_known_area,
         };
-        return Ok(false);
+
+        Ok(completed_frame)
     }
 
-    /// Enable raw mode
-    pub fn enable_raw(&mut self) -> std::io::Result<()> {
-        crossterm::terminal::enable_raw_mode()
+    pub fn hide_cursor(&mut self) -> Result<(), B::Error> {
+        self.backend.hide_cursor()?;
+        self.hidden_cursor = true;
+        Ok(())
     }
 
-    /// Disable raw mode
-    pub fn disable_raw(&mut self) -> std::io::Result<()> {
-        crossterm::terminal::disable_raw_mode()
+    pub fn show_cursor(&mut self) -> Result<(), B::Error> {
+        self.backend.show_cursor()?;
+        self.hidden_cursor = false;
+        Ok(())
     }
+
+    pub fn set_cursor_position<P: Into<Position>>(&mut self, position: P) -> Result<(), B::Error> {
+        let position = position.into();
+        self.backend.set_cursor_position(position)?;
+        self.last_known_cursor_pos = position;
+        Ok(())
+    }
+
+    pub fn get_cursor_position(&mut self) -> Result<Position, B::Error> {
+        self.backend.get_cursor_position()
+    }
+
+    fn set_viewport_area(&mut self, area: Rect) {
+        self.buffers[self.current].resize(area);
+        self.buffers[1 - self.current].resize(area);
+        self.viewport_area = area;
+    }
+
+    pub fn autoresize(&mut self) -> Result<(), B::Error> {
+        if matches!(self.viewport, Viewport::Inline(_)) {
+            let area = self.size()?.into();
+            if area != self.last_known_area {
+                self.resize(area)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn clear(&mut self) -> Result<(), B::Error> {
+        match self.viewport {
+            Viewport::Inline(_) => {
+                self.backend
+                    .set_cursor_position(self.viewport_area.as_position())?;
+                self.backend.clear_region(ClearType::AfterCursor)?;
+            }
+            Viewport::Fixed(_) => {
+                let area = self.viewport_area;
+                for y in area.top()..area.bottom() {
+                    self.backend.set_cursor_position(Position { x: 0, y })?;
+                    self.backend.clear_region(ClearType::AfterCursor)?;
+                }
+            }
+        }
+
+        self.buffers[1 - self.current].reset();
+        Ok(())
+    }
+
+    pub fn swap_buffers(&mut self) {
+        self.buffers[1 - self.current].reset();
+        self.current = 1 - self.current;
+    }
+
+    pub fn size(&mut self) -> Result<Size, B::Error> {
+        self.backend.size()
+    }
+
+    pub fn poll_event(&self) -> Option<(B::Event, bool)> {
+        self.backend.read_event()
+    }
+}
+
+/// Compute the size of the inline viewport
+
+// This function comes from Ratatui, but isn't explained very well there. This version is highly
+// commented to make it more comprehensible
+fn compute_inline_size<B: Backend>(
+    backend: &mut B,
+    height: u16,
+    size: Size,
+    offset_in_previous_viewport: u16,
+) -> Result<(Rect, Position), B::Error> {
+    let pos = backend.get_cursor_position()?;
+    let mut row = pos.y;
+
+    let max_height = size.height.min(height);
+
+    let lines_after_cursor = height
+        .saturating_sub(offset_in_previous_viewport)
+        .saturating_sub(1);
+
+    backend.append_lines(lines_after_cursor)?;
+
+    let available_lines = size.height.saturating_sub(row).saturating_sub(1);
+    let missing_lines = lines_after_cursor.saturating_sub(available_lines);
+
+    if missing_lines > 0 {
+        row = row.saturating_sub(missing_lines);
+    }
+
+    row = row.saturating_sub(offset_in_previous_viewport);
+
+    Ok((
+        Rect {
+            x: 0,
+            y: row,
+            width: size.width,
+            height: max_height,
+        },
+        pos,
+    ))
 }

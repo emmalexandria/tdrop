@@ -1,4 +1,4 @@
-<img align="center" src="https://github.com/emmalexandria/tdrop/blob/main/media/wordmark.svg?raw=true">
+<img align="center" src="https://github.com/emmalexandria/tdrop/blob/main/assets/wordmark.svg?raw=true">
 
 <p align="center"><i><b>a drop of tui</b></i></p>
 

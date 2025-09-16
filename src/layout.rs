@@ -1,7 +1,9 @@
-//! Provides facilities for laying out widgets within the terminal.
-
-mod alignment;
+mod position;
+mod rect;
+mod size;
 mod width;
 
-pub use alignment::Alignment;
+pub use position::Position;
+pub use rect::Rect;
+pub use size::Size;
 pub use width::Width;

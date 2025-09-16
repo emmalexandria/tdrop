@@ -38,6 +38,11 @@ pub use stylize::Stylize;
 
 use std::fmt::Display;
 
+/// Returns whether the terminal background is light
+pub fn is_light() -> bool {
+    terminal_light::luma().map_or(false, |luma| luma > 0.6)
+}
+
 /// Trait for retrieving the style of a type as a reference
 pub trait AsStyle {
     /// Get a reference to the type's style
@@ -71,28 +76,6 @@ pub struct Style {
 
     /// The attributes of the style.
     pub attributes: Attributes,
-}
-
-impl From<crossterm::style::ContentStyle> for Style {
-    fn from(value: crossterm::style::ContentStyle) -> Self {
-        Self {
-            fg: value.foreground_color.map(|c| c.into()),
-            bg: value.background_color.map(|c| c.into()),
-            underline: value.underline_color.map(|c| c.into()),
-            attributes: value.attributes.into(),
-        }
-    }
-}
-
-impl Into<crossterm::style::ContentStyle> for Style {
-    fn into(self) -> crossterm::style::ContentStyle {
-        let mut ret = crossterm::style::ContentStyle::new();
-        ret.foreground_color = self.fg.map(|c| c.into());
-        ret.background_color = self.bg.map(|c| c.into());
-        ret.underline_color = self.underline.map(|c| c.into());
-        ret.attributes = self.attributes.into();
-        ret
-    }
 }
 
 impl AsStyleMut for Style {
@@ -170,33 +153,5 @@ impl Style {
 
             attributes: self.attributes.patch(other.attributes),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::style::{Attribute, Color, Style, Stylize};
-
-    #[test]
-    fn into_crossterm_style() {
-        let mut expected = crossterm::style::ContentStyle::new();
-        expected.foreground_color = Some(crossterm::style::Color::Red);
-        expected.background_color = Some(crossterm::style::Color::Rgb {
-            r: 32,
-            g: 50,
-            b: 45,
-        });
-        expected.attributes.set(crossterm::style::Attribute::Bold);
-
-        let style = Style::new()
-            .on(Color::Rgb {
-                r: 32,
-                g: 50,
-                b: 45,
-            })
-            .with(Color::BrightRed)
-            .attribute(Attribute::Bold);
-
-        assert_eq!(expected, style.into())
     }
 }
