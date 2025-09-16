@@ -19,11 +19,10 @@ impl StatefulComponent for Confirmation {
         state: &mut Self::State,
     ) {
         if state.done {
-            buffer.set_style(area, Style::new().fg(Color::Red));
-
+            buffer[(area.x, area.y)].set_style(Style::new().fg(Color::Green));
             buffer[(area.x, area.y)].set_symbol("d");
         } else {
-            buffer.set_style(area, Style::new().bg(Color::Green));
+            buffer[(area.x, area.y)].set_style(Style::new().fg(Color::Red));
             buffer[(area.x, area.y)].set_symbol("r");
         }
     }

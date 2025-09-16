@@ -15,8 +15,8 @@ fn main() {
         // But if you want to render a stateful widget, enter a loop.
         // Poll events from the terminal to get both any events from the chosen terminal backend
         // and also whether or not an exit signal (CTRL+C) was sent.
+        let mut confirmation_state = ConfirmationState { done: false };
         loop {
-            let mut confirmation_state = ConfirmationState { done: false };
             let confirmation = Confirmation {};
             term.draw(|frame| {
                 frame.render_stateful_component(
@@ -25,6 +25,10 @@ fn main() {
                     &mut confirmation_state,
                 );
             });
+
+            if confirmation_state.done {
+                break;
+            }
             if let Some((ev, should_exit)) = term.poll_event() {
                 if should_exit {
                     exit(term);
