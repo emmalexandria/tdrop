@@ -8,6 +8,7 @@ use unicode_width::UnicodeWidthStr;
 use crate::{
     buffer::Cell,
     layout::{Position, Rect},
+    style::Style,
 };
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
@@ -87,6 +88,17 @@ impl Buffer {
         }
 
         updates
+    }
+
+    pub fn set_style<S: Into<Style>>(&mut self, area: Rect, style: S) {
+        let style = style.into();
+        let area = self.area.intersection(area);
+
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                self[(x, y)].set_style(style);
+            }
+        }
     }
 
     pub fn resize(&mut self, area: Rect) {

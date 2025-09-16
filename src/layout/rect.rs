@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+
 use crate::layout::{Position, Size};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
@@ -41,6 +43,28 @@ impl Rect {
             x: self.x,
             y: self.y,
         }
+    }
+
+    #[must_use = "method returns the modified value"]
+    pub fn intersection(self, other: Self) -> Self {
+        let x1 = max(self.x, other.x);
+        let y1 = max(self.y, other.y);
+        let x2 = min(self.right(), other.right());
+        let y2 = min(self.bottom(), other.bottom());
+        Self {
+            x: x1,
+            y: y1,
+            width: x2.saturating_sub(x1),
+            height: y2.saturating_sub(y1),
+        }
+    }
+
+    /// Returns true if the two `Rect`s intersect.
+    pub const fn intersects(self, other: Self) -> bool {
+        self.x < other.right()
+            && self.right() > other.x
+            && self.y < other.bottom()
+            && self.bottom() > other.y
     }
 
     pub const fn contains(self, position: Position) -> bool {

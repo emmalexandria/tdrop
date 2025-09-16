@@ -2,14 +2,9 @@
 //!
 //! It also provides a number of built-in components, particularly for text rendering.
 
-use std::io::Write;
+use crate::{buffer::Buffer, layout::Rect};
 
-use crate::{
-    backend::Backend,
-    buffer::Buffer,
-    layout::{Rect, Width},
-    terminal::Terminal,
-};
+pub mod confirmation;
 
 /// Component is the building block of `tdrop` rendering
 pub trait Component {
