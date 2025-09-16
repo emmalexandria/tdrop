@@ -7,9 +7,9 @@
 `tdrop` is a Rust crate for CLI-first high-level terminal output. It provides flexible ways to create high-quality CLI output, ranging from package installers to `--help` printers. 
 
 ### CLI-first
-As the name implies, the intention of `tdrop` is to provide 'a drop of TUI'. In other words, many of the nice features of TUI frameworks such as [ratatui](https://github.com/ratatui/ratatui) but with an assumption that you're building a CLI. 
+As the name implies, the intention of `tdrop` is to provide 'a drop of TUI'. In other words, many of the nice features of TUI frameworks such as [ratatui](https://github.com/ratatui/ratatui) but with an assumption that you're building a CLI. It was built due to frustration with Ratatui's inline rendering mode which makes the assumption that you always want a TUI window inline, only outputting normal lines of text above it. 
 
-It enters raw mode only when necessary, and provides a unified framework for building progressbars, prompts, selections, etc.
+
 
 Although it cannot lay a claim to efficiency, I certaintly believe it is best-in-class in terms of the ease with which one can achieve beautiful cross-platform terminal output.
 
