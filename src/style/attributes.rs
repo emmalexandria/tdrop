@@ -258,11 +258,58 @@ impl Attributes {
         self.0 == 0
     }
 
+    /// Get the intersection of two sets of attributes
+    #[inline]
+    pub fn intersection(self, other: Self) -> Self {
+        // Get the u32 representation of other
+        let other: u32 = other.into();
+        // Take the bitwise AND and convert it into Self
+        (self.0 & other).into()
+    }
+
     /// Patch these attributes with another set of attributes
     #[must_use = "returns a new value"]
     pub fn patch(self, other: Attributes) -> Self {
         let mut attributes = self;
         attributes.extend(other);
         attributes
+    }
+}
+
+impl From<u32> for Attributes {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+
+impl Into<u32> for Attributes {
+    fn into(self) -> u32 {
+        self.0
+    }
+}
+
+impl std::ops::Sub for Attributes {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let intersection: u32 = self.intersection(rhs).into();
+
+        (self.0 & !intersection).into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::style::Attributes;
+
+    #[test]
+    fn intersection() {
+        let first: Attributes = 0b00000000000000000000000010110001.into();
+        let second: Attributes = 0b00000000000000000000000010010001.into();
+
+        assert_eq!(
+            first.intersection(second).0,
+            0b00000000000000000000000010010001
+        )
     }
 }

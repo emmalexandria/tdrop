@@ -41,6 +41,15 @@
 //! ## Code Examples
 //!
 
+use std::io::{self, Stdout};
+
+use crossterm::{
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
+
+use crate::{backend::CrosstermBackend, terminal::Terminal};
+
 pub mod backend;
 pub mod buffer;
 pub mod component;
@@ -48,3 +57,36 @@ pub mod layout;
 pub mod style;
 pub mod terminal;
 pub mod theme;
+
+type DefaultTerminal = Terminal<CrosstermBackend<Stdout>>;
+
+pub fn run<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut DefaultTerminal) -> R,
+{
+    let mut terminal = init();
+    let result = f(&mut terminal);
+    restore();
+    result
+}
+
+pub fn init() -> DefaultTerminal {
+    try_init().expect("failed to init terminal")
+}
+
+pub fn try_init() -> io::Result<DefaultTerminal> {
+    enable_raw_mode()?;
+    let backend = CrosstermBackend::new(std::io::stdout());
+    Terminal::new(backend)
+}
+
+pub fn restore() {
+    if let Err(err) = try_restore() {
+        eprintln!("Failed to restore terminal: {err}");
+    }
+}
+
+pub fn try_restore() -> io::Result<()> {
+    disable_raw_mode()?;
+    Ok(())
+}

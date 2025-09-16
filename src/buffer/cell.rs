@@ -28,4 +28,8 @@ impl Cell {
     pub fn symbol(&self) -> &str {
         self.symbol.as_ref().map_or(" ", |s| s.as_str())
     }
+
+    pub fn reset(&mut self) {
+        *self = Self::EMPTY
+    }
 }

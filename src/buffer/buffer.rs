@@ -59,6 +59,12 @@ impl Buffer {
         Some(y * width + x)
     }
 
+    pub fn reset(&mut self) {
+        for cell in &mut self.content {
+            cell.reset();
+        }
+    }
+
     pub fn diff<'a>(&self, other: &'a Self) -> Vec<(u16, u16, &'a Cell)> {
         let previous_buffer = &self.content;
         let next_buffer = &other.content;
@@ -81,6 +87,17 @@ impl Buffer {
         }
 
         updates
+    }
+
+    pub fn resize(&mut self, area: Rect) {
+        let length = area.area() as usize;
+        if self.content.len() > length {
+            self.content.truncate(length);
+        } else {
+            self.content.resize(length, Cell::EMPTY)
+        }
+
+        self.area = area;
     }
 }
 

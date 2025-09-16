@@ -1,1 +1,3 @@
-fn main() {}
+fn main() {
+    tdrop::run(|term| loop {})
+}

@@ -6,5 +6,5 @@ pub use viewport::Viewport;
 mod terminal;
 pub use terminal::Terminal;
 
-mod input;
-pub use input::Input as TerminalInput;
+mod frame;
+pub use frame::Frame;

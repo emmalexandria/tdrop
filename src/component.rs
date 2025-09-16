@@ -4,10 +4,21 @@
 
 use std::io::Write;
 
-use crate::{backend::Backend, layout::Width, terminal::Terminal};
+use crate::{
+    backend::Backend,
+    buffer::Buffer,
+    layout::{Rect, Width},
+    terminal::Terminal,
+};
 
 /// Component is the building block of `tdrop` rendering
 pub trait Component {
     /// Render the component to the terminal
-    fn render<B: Backend>(self, width: Width, term: &mut Terminal<B>);
+    fn render(self, area: Rect, buffer: &mut Buffer);
+}
+
+pub trait StatefulComponent {
+    type State: Sized;
+
+    fn render(self, area: Rect, buffer: &mut Buffer, state: &mut Self::State);
 }
