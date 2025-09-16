@@ -1,4 +1,4 @@
-//! ![tdrop wordmark](https://github.com/emmalexandria/tdrop/blob/main/media/wordmark.svg?raw=true)
+//! ![tdrop wordmark](https://github.com/emmalexandria/tdrop/blob/main/assets/wordmark.svg?raw=true)
 //!
 //! # tdrop
 //!
