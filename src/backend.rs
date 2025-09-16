@@ -42,6 +42,8 @@ pub trait Backend {
 
     fn clear_region(&mut self, clear_type: ClearType) -> Result<(), Self::Error>;
 
+    fn clear(&mut self) -> Result<(), Self::Error>;
+
     fn size(&self) -> Result<Size, Self::Error>;
 
     fn flush(&mut self) -> Result<(), Self::Error>;
@@ -124,36 +126,58 @@ where
         Ok(())
     }
 
-    fn append_lines(&mut self, n: u16) -> Result<(), Self::Error> {
-        todo!()
+    fn append_lines(&mut self, n: u16) -> io::Result<()> {
+        for _ in 0..n {
+            queue!(self.writer, Print("\n"))?;
+        }
+
+        self.writer.flush()
     }
 
-    fn hide_cursor(&mut self) -> Result<(), Self::Error> {
-        todo!()
+    fn hide_cursor(&mut self) -> io::Result<()> {
+        execute!(self.writer, Hide)
     }
 
-    fn show_cursor(&mut self) -> Result<(), Self::Error> {
-        todo!()
+    fn show_cursor(&mut self) -> io::Result<()> {
+        execute!(self.writer, Show)
     }
 
-    fn get_cursor_position(&mut self) -> Result<Position, Self::Error> {
-        todo!()
+    fn get_cursor_position(&mut self) -> io::Result<Position> {
+        crossterm::cursor::position()
+            .map(|(x, y)| Position { x, y })
+            .map_err(io::Error::other)
     }
 
-    fn set_cursor_position<P: Into<Position>>(&mut self, position: P) -> Result<(), Self::Error> {
-        todo!()
+    fn set_cursor_position<P: Into<Position>>(&mut self, position: P) -> io::Result<()> {
+        let Position { x, y } = position.into();
+        execute!(self.writer, MoveTo(x, y))
     }
 
-    fn clear_region(&mut self, clear_type: ClearType) -> Result<(), Self::Error> {
-        todo!()
+    fn clear(&mut self) -> io::Result<()> {
+        self.clear_region(ClearType::All)
     }
 
-    fn size(&self) -> Result<Size, Self::Error> {
-        todo!()
+    fn clear_region(&mut self, clear_type: ClearType) -> io::Result<()> {
+        execute!(
+            self.writer,
+            Clear(match clear_type {
+                ClearType::All => crossterm::terminal::ClearType::All,
+                ClearType::AfterCursor => crossterm::terminal::ClearType::FromCursorDown,
+                ClearType::BeforeCursor => crossterm::terminal::ClearType::FromCursorUp,
+                ClearType::CurrentLine => crossterm::terminal::ClearType::CurrentLine,
+                ClearType::UntilNewLine => crossterm::terminal::ClearType::UntilNewLine,
+            })
+        )
     }
 
-    fn flush(&mut self) -> Result<(), Self::Error> {
-        todo!()
+    fn size(&self) -> io::Result<Size> {
+        let (width, height) = crossterm::terminal::size()?;
+
+        Ok(Size { width, height })
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.writer.flush()
     }
 }
 
