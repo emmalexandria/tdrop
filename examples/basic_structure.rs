@@ -12,7 +12,7 @@ fn main() {
 
         // But if you want to render a stateful widget, enter a loop.
         // Poll events from the terminal to get both any events from the chosen terminal backend
-        // and also whether or not an exit signal was sent.
+        // and also whether or not an exit signal (CTRL+C) was sent.
         loop {
             if let Some((ev, should_exit)) = term.poll_event() {
                 if should_exit {
