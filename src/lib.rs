@@ -58,7 +58,7 @@ pub mod style;
 pub mod terminal;
 pub mod theme;
 
-type DefaultTerminal = Terminal<CrosstermBackend<Stdout>>;
+pub type DefaultTerminal = Terminal<CrosstermBackend<Stdout>>;
 
 pub fn run<F, R>(f: F) -> R
 where
